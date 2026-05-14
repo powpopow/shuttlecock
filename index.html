@@ -2,1131 +2,1253 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Shuttlecock</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Badminton Calculation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0a0a08;
-  --surface: #131310;
-  --surface2: #1a1a16;
-  --surface3: #222220;
-  --border: #252520;
-  --border2: #333330;
-  --text: #eeebe0;
-  --muted: #666660;
-  --muted2: #888880;
-  --accent: #d4f060;
-  --accent2: #b8d448;
-  --accent-bg: #1a2008;
-  --accent-border: #2e3e10;
-  --danger: #f06858;
-  --danger-bg: #1e0c0a;
-  --success: #58d4a0;
-  --success-bg: #081e14;
-  --warn: #f0b858;
-  --warn-bg: #1e1208;
-  --r: 8px;
+  --bg: #fdf8f2;
+  --white: #ffffff;
+  --surface: #f7f1e8;
+  --border: #ede5d8;
+  --border2: #dfd5c4;
+  --text: #2a1f14;
+  --text2: #7a6a58;
+  --text3: #b8a898;
+  --accent: #c4622d;
+  --accent-l: #f5ece5;
+  --accent-d: #a04f22;
+  --green: #3a7a52;
+  --green-l: #eaf2ed;
+  --red: #b83232;
+  --red-l: #faeaea;
+  --dark: #2a1f14;
+  --r: 10px;
   --r-lg: 14px;
-  --sidebar-w: 200px;
+  --r-xl: 20px;
+  --tab-h: 64px;
+  --header-h: 64px;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-html, body { height: 100%; }
+html, body { height: 100%; overflow: hidden; }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'DM Mono', monospace;
-  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
 }
 
-/* ─── Layout ─── */
-.shell { display: flex; height: 100vh; overflow: hidden; }
-
-.sidebar {
-  width: var(--sidebar-w);
-  flex-shrink: 0;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  z-index: 10;
-}
-
-.main {
-  flex: 1;
-  overflow-y: auto;
-  padding: 32px 32px 60px;
-}
-
-/* ─── Logo ─── */
-.logo {
-  padding: 22px 18px 18px;
+/* ── Header ── */
+.app-header {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  height: var(--header-h);
+  background: var(--white);
   border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-end;
+  padding: 0 20px 12px;
+  z-index: 100;
 }
-.logo-eyebrow {
-  font-size: 9px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-.logo-title {
-  font-family: 'Unbounded', sans-serif;
-  font-size: 15px;
-  font-weight: 900;
-  color: var(--accent);
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
+.header-eyebrow { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 2px; }
+.header-title { font-family: 'Lora', serif; font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; line-height: 1; }
+.header-title span { color: var(--accent); font-style: italic; }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text3); }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); transition: background 0.3s; }
+.sync-dot.ok { background: var(--green); }
+.sync-dot.err { background: var(--red); }
+.sync-dot.loading { background: #f0b858; animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-/* ─── Nav ─── */
-.nav { padding: 10px 0; flex: 1; }
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 9px 18px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--muted2);
-  cursor: pointer;
-  border-left: 2px solid transparent;
-  transition: all 0.12s;
-  letter-spacing: 0.02em;
-  user-select: none;
-}
-.nav-item:hover { color: var(--text); background: var(--surface2); }
-.nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-bg); }
-.nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-
-/* ─── Sync status ─── */
-.sync-area {
-  padding: 14px 18px;
+/* ── Bottom tabs ── */
+.bottom-tabs {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  height: var(--tab-h);
+  background: var(--white);
   border-top: 1px solid var(--border);
-  font-size: 10px;
-  color: var(--muted);
-  letter-spacing: 0.04em;
+  display: flex;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
 }
-.sync-dot {
-  display: inline-block;
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--muted);
-  margin-right: 6px;
-  vertical-align: middle;
-  transition: background 0.3s;
+.tab-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; cursor: pointer; color: var(--text3);
+  font-size: 10px; font-weight: 500; letter-spacing: 0.02em;
+  transition: color 0.15s;
+  padding-top: 8px;
 }
-.sync-dot.ok { background: var(--success); }
-.sync-dot.err { background: var(--danger); }
-.sync-dot.loading { background: var(--warn); animation: pulse 1s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.tab-item.active { color: var(--accent); }
+.tab-icon { font-size: 20px; line-height: 1; }
 
-/* ─── Page header ─── */
-.page-hd { margin-bottom: 24px; }
-.page-title {
-  font-family: 'Unbounded', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.03em;
+/* ── Scroll area ── */
+.scroll-area {
+  position: fixed;
+  top: var(--header-h);
+  bottom: var(--tab-h);
+  left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 16px 24px;
 }
-.page-sub { font-size: 11px; color: var(--muted); margin-top: 5px; letter-spacing: 0.03em; }
 
-/* ─── Cards ─── */
+/* ── Views ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── Cards ── */
 .card {
-  background: var(--surface);
+  background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  padding: 20px 22px;
-  margin-bottom: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
 }
 .card-label {
-  font-size: 10px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--muted);
-  margin-bottom: 14px;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text3); margin-bottom: 12px;
+}
+.dark-card {
+  background: var(--dark);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  margin-bottom: 12px;
 }
 
-/* ─── Fields ─── */
-.field { margin-bottom: 12px; }
-.field > label {
-  display: block;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 5px;
+/* ── Fields ── */
+.field { margin-bottom: 10px; }
+.field label {
+  display: block; font-size: 11px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text3); margin-bottom: 5px;
 }
-.field input, .field select {
+.field input, .field select, .field textarea {
   width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 9px 12px;
+  padding: 11px 14px;
   color: var(--text);
-  font-size: 13px;
-  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  font-family: 'DM Sans', sans-serif;
   outline: none;
-  transition: border-color 0.12s;
+  transition: border-color 0.15s;
   -webkit-appearance: none;
 }
-.field input:focus, .field select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
-.field input::placeholder { color: var(--muted); }
-.field-hint { font-size: 10px; color: var(--muted); margin-top: 3px; letter-spacing: 0.02em; }
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--accent);
+  background: var(--white);
+}
+.field input::placeholder, .field textarea::placeholder { color: var(--text3); }
+.field-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.field textarea { resize: none; height: 90px; font-size: 13px; line-height: 1.6; }
 
-.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-.g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
-/* ─── Buttons ─── */
+/* ── Info tiles ── */
+.tile { background: var(--surface); border-radius: var(--r); padding: 10px 12px; }
+.tile-lbl { font-size: 10px; color: var(--text3); margin-bottom: 3px; letter-spacing: 0.03em; }
+.tile-val { font-size: 15px; font-weight: 600; color: var(--text); }
+.tile-val.acc { color: var(--accent); }
+.tile-val.grn { color: var(--green); }
+.tile-val.red { color: var(--red); }
+
+/* ── Buttons ── */
 .btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 9px 18px;
-  border-radius: var(--r);
-  font-size: 12px; font-weight: 500;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 13px 20px; border-radius: var(--r-lg);
+  font-size: 14px; font-weight: 600;
   cursor: pointer; border: none;
-  font-family: 'DM Mono', monospace;
-  letter-spacing: 0.04em;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.01em;
   transition: all 0.12s;
-  white-space: nowrap;
+  width: 100%;
 }
-.btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--accent); color: #0a0a08; }
-.btn-primary:hover { background: var(--accent2); }
-.btn-ghost { background: transparent; color: var(--muted2); border: 1px solid var(--border2); }
-.btn-ghost:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
-.btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--border); font-size: 11px; padding: 5px 10px; }
-.btn-danger:hover { background: var(--danger-bg); border-color: var(--danger); }
-.btn-sm { padding: 6px 12px; font-size: 11px; }
-.btn-xs { padding: 3px 8px; font-size: 10px; }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--accent); color: var(--white); }
+.btn-primary:hover { background: var(--accent-d); }
+.btn-ghost { background: var(--white); color: var(--text2); border: 1px solid var(--border2); }
+.btn-ghost:hover { background: var(--surface); }
+.btn-accent-soft { background: var(--accent-l); color: var(--accent); border: none; font-size: 13px; padding: 10px 16px; }
+.btn-sm { padding: 9px 14px; font-size: 13px; }
+.btn-danger { background: var(--red-l); color: var(--red); border: none; }
+.btn-row { display: flex; gap: 8px; }
+.btn-row .btn { flex: 1; }
 
-/* ─── Metrics ─── */
-.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
-.metric {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 14px 16px;
-}
-.metric-lbl { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
-.metric-val { font-size: 22px; font-weight: 500; color: var(--text); font-family: 'Unbounded', sans-serif; letter-spacing: -0.03em; }
-.metric-val.green { color: var(--accent); }
-.metric-val.red { color: var(--danger); }
-.metric-val.yellow { color: var(--warn); }
-
-/* ─── Table ─── */
-.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-th {
-  text-align: left;
-  font-size: 10px; font-weight: 500;
-  text-transform: uppercase; letter-spacing: 0.1em;
-  color: var(--muted);
-  padding: 7px 10px;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-}
-td {
-  padding: 10px 10px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text);
-  font-size: 12px;
-  vertical-align: middle;
-}
-tr:last-child td { border-bottom: none; }
-tbody tr:hover td { background: var(--surface2); }
-
-/* ─── Badge ─── */
-.badge {
-  display: inline-flex; align-items: center;
-  padding: 2px 9px;
-  border-radius: 99px;
-  font-size: 10px; font-weight: 500;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
-}
-.badge-paid { background: var(--success-bg); color: var(--success); border: 1px solid #1a4030; }
-.badge-unpaid { background: var(--danger-bg); color: var(--danger); border: 1px solid #3e1a16; }
-.badge-partial { background: var(--warn-bg); color: var(--warn); border: 1px solid #3e2e10; }
-
-/* ─── Avatar ─── */
-.av {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  background: var(--accent-bg);
-  color: var(--accent);
-  font-size: 10px; font-weight: 500;
-  border: 1px solid var(--accent-border);
-  flex-shrink: 0;
-}
-
-/* ─── Player chip ─── */
-.pchip {
+/* ── Player chips ── */
+.player-chip {
   display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
+  padding: 10px 12px;
+  background: var(--surface);
   border-radius: var(--r);
   margin-bottom: 7px;
 }
-.pchip .pname { flex: 1; font-size: 13px; }
+.player-chip .pname { flex: 1; font-size: 14px; font-weight: 500; }
+.av {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--accent-l); color: var(--accent);
+  font-size: 11px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; border: 1px solid #edd5c8;
+}
+.av.sm { width: 24px; height: 24px; font-size: 9px; }
+.extra-pill {
+  font-size: 11px; color: var(--accent);
+  background: var(--accent-l); border-radius: 99px;
+  padding: 2px 8px; font-weight: 500;
+}
 
-/* ─── Pill toggle ─── */
+/* ── Pill toggles ── */
+.pill-wrap { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 6px; }
 .pill-toggle {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 11px;
-  border-radius: 99px;
+  padding: 7px 13px; border-radius: 99px;
   border: 1px solid var(--border2);
-  background: transparent;
-  color: var(--muted);
-  font-size: 11px;
-  font-family: 'DM Mono', monospace;
-  cursor: pointer;
-  transition: all 0.12s;
-  margin: 3px;
+  background: var(--white); color: var(--text3);
+  font-size: 13px; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: all 0.12s;
 }
-.pill-toggle.on {
-  border-color: var(--accent);
-  background: var(--accent-bg);
-  color: var(--accent);
-}
+.pill-toggle.on { border-color: var(--accent); background: var(--accent-l); color: var(--accent); font-weight: 500; }
 
-/* ─── Info box ─── */
-.info-box {
-  display: flex; gap: 8px;
-  padding: 10px 13px;
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-  border-radius: var(--r);
-  font-size: 11px; color: var(--accent2);
-  line-height: 1.6;
-  margin-bottom: 13px;
+/* ── Badges ── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: 99px;
+  font-size: 11px; font-weight: 600;
 }
+.badge-green { background: var(--green-l); color: var(--green); }
+.badge-red { background: var(--red-l); color: var(--red); }
+.badge-acc { background: var(--accent-l); color: var(--accent); }
 
-/* ─── Formula ─── */
-.formula {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 12px 16px;
-  font-size: 11px; line-height: 2;
-  color: var(--muted2);
-  margin-bottom: 14px;
+/* ── Dark card metrics ── */
+.dark-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 12px; }
+.dark-metric .dm-lbl { font-size: 10px; color: #7a6a58; margin-bottom: 3px; }
+.dark-metric .dm-val { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(--bg); }
+.dark-metric .dm-val.grn { color: #6dda90; }
+.dark-metric .dm-val.red { color: #f08070; }
+
+/* ── Progress bar ── */
+.prog-bg { background: #3d2e20; border-radius: 99px; height: 5px; margin-bottom: 5px; overflow: hidden; }
+.prog-bar { height: 5px; border-radius: 99px; background: var(--accent); transition: width 0.6s; }
+.prog-lbl { display: flex; justify-content: space-between; font-size: 10px; color: #7a6a58; }
+
+/* ── Stock cards ── */
+.stock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.stock-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 14px; }
+.stock-lbl { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+.stock-big { font-family: 'Lora', serif; font-size: 28px; font-weight: 600; color: var(--text); line-height: 1; }
+.stock-big.low { color: var(--red); }
+.stock-unit { font-size: 11px; color: var(--text3); margin-bottom: 8px; margin-top: 1px; }
+.stock-rows { margin-bottom: 10px; display: flex; flex-direction: column; gap: 3px; }
+.stock-row-item { display: flex; justify-content: space-between; }
+.sri-lbl { font-size: 11px; color: var(--text3); }
+.sri-val { font-size: 11px; font-weight: 600; color: var(--text); }
+.sri-val.grn { color: var(--green); }
+.sri-val.red { color: var(--red); }
+
+/* ── Section divider ── */
+.section-div {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text3);
+  margin: 4px 0 12px;
 }
-.formula .hl { color: var(--accent); }
-.formula .v { color: var(--text); font-weight: 500; }
+.section-div::before, .section-div::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-/* ─── Session accordion ─── */
-.sess-card {
+/* ── Paste result ── */
+.paste-result {
   background: var(--surface);
+  border-radius: var(--r);
+  padding: 12px 14px;
+}
+.pr-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.pr-row:last-child { margin-bottom: 0; }
+.pr-lbl { font-size: 12px; color: var(--text3); }
+.pr-val { font-size: 13px; font-weight: 600; color: var(--text); }
+.pr-val.acc { color: var(--accent); }
+
+/* ── Result formula ── */
+.formula-box {
+  background: var(--surface);
+  border-radius: var(--r);
+  padding: 12px 14px;
+  font-size: 12px; color: var(--text2); line-height: 2;
+}
+.formula-box .hl { color: var(--accent); font-weight: 500; }
+.formula-box .v { color: var(--text); font-weight: 600; }
+
+/* ── Markup row ── */
+.markup-section {
+  background: var(--accent-l);
+  border-radius: var(--r);
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.markup-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.markup-title { font-size: 12px; font-weight: 600; color: var(--accent); letter-spacing: 0.05em; text-transform: uppercase; }
+.markup-input-wrap { display: flex; align-items: center; gap: 8px; }
+.markup-prefix { font-size: 16px; font-weight: 600; color: var(--accent); }
+.markup-input {
+  width: 80px; background: var(--white); border: 1px solid #edd5c8;
+  border-radius: var(--r); padding: 8px 10px;
+  font-size: 18px; font-weight: 600; color: var(--accent);
+  font-family: 'Lora', serif; text-align: right; outline: none;
+}
+.final-row { display: flex; justify-content: space-between; align-items: baseline; padding-top: 10px; border-top: 1px solid #edd5c8; }
+.final-lbl { font-size: 12px; color: var(--accent-d); }
+.final-val { font-family: 'Lora', serif; font-size: 26px; font-weight: 600; color: var(--accent); }
+
+/* ── LINE template ── */
+.line-template {
+  background: #f0f0f0;
+  border-radius: var(--r);
+  padding: 14px;
+  font-size: 13px; line-height: 1.8;
+  color: #1a1a1a;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Session history ── */
+.sess-card {
+  background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   margin-bottom: 10px;
   overflow: hidden;
 }
 .sess-hd {
-  display: flex; align-items: center; gap: 10px;
-  padding: 14px 18px;
+  padding: 14px 16px;
   cursor: pointer;
-  user-select: none;
+  display: flex; align-items: center; gap: 10px;
 }
-.sess-hd:hover { background: var(--surface2); }
-.sess-date { font-family: 'Unbounded', sans-serif; font-size: 13px; font-weight: 700; flex: 1; letter-spacing: -0.02em; }
-.sess-bd { padding: 0 18px 16px; display: none; }
-.sess-bd.open { display: block; }
-.chev { font-size: 10px; color: var(--muted); transition: transform 0.2s; }
-.chev.open { transform: rotate(180deg); }
+.sess-hd:active { background: var(--surface); }
+.sess-date { font-family: 'Lora', serif; font-size: 16px; font-weight: 600; flex: 1; }
+.sess-venue { font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-l); padding: 3px 9px; border-radius: 99px; }
+.sess-chev { font-size: 10px; color: var(--text3); transition: transform 0.2s; }
+.sess-chev.open { transform: rotate(180deg); }
+.sess-body { padding: 0 16px 14px; display: none; border-top: 1px solid var(--border); }
+.sess-body.open { display: block; padding-top: 12px; }
+.sess-meta-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 
-/* ─── Balance bar ─── */
-.bal-bar-wrap { background: var(--surface3); border-radius: 99px; height: 3px; margin-top: 5px; overflow: hidden; width: 80px; }
-.bal-bar { height: 3px; border-radius: 99px; background: var(--accent); }
+/* ── Balance cards ── */
+.bal-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 14px 16px; margin-bottom: 10px; }
+.bal-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+.bal-name { font-size: 16px; font-weight: 600; font-family: 'Lora', serif; }
+.bal-sub { font-size: 12px; color: var(--text3); margin-bottom: 10px; }
+.bal-bar-bg { background: var(--surface); border-radius: 99px; height: 5px; margin-bottom: 6px; overflow: hidden; }
+.bal-bar { height: 5px; border-radius: 99px; background: var(--accent); transition: width 0.5s; }
+.bal-nums { display: flex; justify-content: space-between; font-size: 12px; }
+.bal-paid { color: var(--text3); }
+.bal-out { color: var(--red); font-weight: 600; }
+.bal-ok { color: var(--green); font-weight: 600; }
 
-/* ─── Sep ─── */
-.sep { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+/* ── Config items ── */
+.cfg-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.cfg-row:last-child { border-bottom: none; }
+.cfg-lbl { font-size: 14px; color: var(--text2); }
+.cfg-lbl small { display: block; font-size: 11px; color: var(--text3); margin-top: 1px; }
+.cfg-val { font-size: 14px; font-weight: 600; color: var(--text); }
+.cfg-edit { font-size: 12px; color: var(--accent); font-weight: 500; cursor: pointer; }
 
-/* ─── Views ─── */
-.view { display: none; }
-.view.active { display: block; }
+/* ── Venue badge ── */
+.venue-item { background: var(--surface); border-radius: var(--r); padding: 12px 14px; margin-bottom: 8px; }
+.venue-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.venue-rates { display: flex; gap: 10px; }
+.vrate { font-size: 12px; color: var(--text3); }
+.vrate span { color: var(--text); font-weight: 500; }
 
-/* ─── Setup screen ─── */
-.setup-wrap {
-  max-width: 560px;
-  margin: 0 auto;
-  padding: 40px 20px;
+/* ── Modal overlay ── */
+.modal-overlay {
+  display: none; position: fixed;
+  inset: 0; background: rgba(42,31,20,0.5);
+  z-index: 200; align-items: flex-end;
+  max-width: 480px; left: 50%; transform: translateX(-50%);
 }
-.setup-step {
-  display: flex; align-items: flex-start; gap: 14px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border);
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--white);
+  width: 100%; border-radius: var(--r-xl) var(--r-xl) 0 0;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+  animation: slideUp 0.25s ease;
 }
-.setup-step:last-child { border-bottom: none; }
-.step-num {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: var(--surface3);
-  border: 1px solid var(--border2);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 500;
-  flex-shrink: 0;
-  color: var(--muted2);
-}
-.step-num.done { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
-.step-body { flex: 1; }
-.step-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 5px; }
-.step-desc { font-size: 11px; color: var(--muted); line-height: 1.7; }
-.step-desc code {
-  background: var(--surface3);
-  border: 1px solid var(--border2);
-  border-radius: 4px;
-  padding: 1px 6px;
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  color: var(--accent);
-}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+.modal-calc-preview { background: var(--accent-l); border-radius: var(--r); padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: var(--accent-d); }
 
-/* ─── Responsive mobile ─── */
-@media (max-width: 680px) {
-  :root { --sidebar-w: 0px; }
-  .sidebar { display: none; }
-  .main { padding: 16px 14px 80px; }
-  .g3, .g4 { grid-template-columns: 1fr 1fr; }
-  .metrics { grid-template-columns: 1fr 1fr; }
-  .metrics .metric:last-child { grid-column: span 2; }
-  .mobile-nav {
-    display: flex !important;
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    z-index: 100;
-    padding: 8px 0 12px;
-    justify-content: space-around;
-  }
-  .mobile-nav-item {
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    font-size: 9px; color: var(--muted); cursor: pointer;
-    letter-spacing: 0.05em; padding: 4px 12px;
-  }
-  .mobile-nav-item.active { color: var(--accent); }
-  .mobile-nav-icon { font-size: 18px; }
-}
+/* ── Warn bar ── */
+.warn-bar { background: var(--red-l); border: 1px solid #f5c4c4; border-radius: var(--r); padding: 10px 14px; font-size: 13px; color: var(--red); font-weight: 500; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 
-.mobile-nav { display: none; }
-
-/* ─── Spinner ─── */
-.spinner {
-  display: inline-block;
-  width: 14px; height: 14px;
-  border: 2px solid var(--border2);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  vertical-align: middle;
+/* ── Toast ── */
+#toast {
+  position: fixed; bottom: calc(var(--tab-h) + 12px);
+  left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--dark); color: var(--bg);
+  padding: 10px 18px; border-radius: 99px;
+  font-size: 13px; font-weight: 500;
+  opacity: 0; transition: all 0.2s;
+  pointer-events: none; white-space: nowrap;
+  z-index: 300;
 }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.ok { background: var(--green); }
+#toast.err { background: var(--red); }
+
+/* ── Empty state ── */
+.empty { text-align: center; padding: 48px 20px; color: var(--text3); font-size: 14px; }
+.empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+
+/* ── Sep ── */
+.sep { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+
+/* ── Quick add row ── */
+.quick-add-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.quick-add-btn { background: var(--white); border: 1px solid var(--border2); border-radius: 99px; padding: 6px 12px; font-size: 12px; color: var(--text2); font-family: 'DM Sans', sans-serif; cursor: pointer; }
+.quick-add-btn:active { background: var(--surface); }
+
+/* ── Spinner ── */
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ─── Toast ─── */
-#toast {
-  position: fixed; bottom: 24px; right: 24px;
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: var(--r);
-  padding: 11px 18px;
-  font-size: 12px;
-  color: var(--text);
-  z-index: 9999;
-  transform: translateY(80px);
-  opacity: 0;
-  transition: all 0.2s;
-  pointer-events: none;
-}
-#toast.show { transform: translateY(0); opacity: 1; }
-#toast.ok { border-color: var(--accent); color: var(--accent); }
-#toast.err { border-color: var(--danger); color: var(--danger); }
-
-/* ─── Empty ─── */
-.empty {
-  text-align: center; padding: 48px 20px;
-  font-size: 12px; color: var(--muted);
-}
-.empty-icon { font-size: 36px; margin-bottom: 10px; opacity: 0.4; }
+.section-title { font-family: 'Lora', serif; font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.section-sub { font-size: 12px; color: var(--text3); margin-bottom: 14px; }
 </style>
 </head>
 <body>
 
-<div class="shell">
-  <!-- Sidebar -->
-  <nav class="sidebar">
-    <div class="logo">
-      <div class="logo-eyebrow">Badminton</div>
-      <div class="logo-title">Shuttlecock</div>
-    </div>
-    <div class="nav">
-      <div class="nav-item active" id="nav-calc" onclick="go('calc')"><span class="nav-dot"></span>Calculate</div>
-      <div class="nav-item" id="nav-sessions" onclick="go('sessions')"><span class="nav-dot"></span>Sessions</div>
-      <div class="nav-item" id="nav-balances" onclick="go('balances')"><span class="nav-dot"></span>Balances</div>
-      <div class="nav-item" id="nav-config" onclick="go('config')"><span class="nav-dot"></span>Config</div>
-      <div class="nav-item" id="nav-setup" onclick="go('setup')"><span class="nav-dot"></span>Sheet setup</div>
-    </div>
-    <div class="sync-area">
-      <span class="sync-dot" id="sync-dot"></span>
-      <span id="sync-lbl">Not connected</span>
-    </div>
-  </nav>
+<!-- Header -->
+<header class="app-header">
+  <div>
+    <div class="header-eyebrow">Badminton</div>
+    <div class="header-title">Calculation</div>
+  </div>
+  <div class="header-right">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span id="sync-lbl">–</span>
+  </div>
+</header>
 
-  <!-- Main -->
-  <main class="main">
+<!-- Scroll area -->
+<div class="scroll-area" id="scroll-area">
 
-    <!-- ══ CALCULATE ══ -->
-    <div class="view active" id="view-calc">
-      <div class="page-hd">
-        <div class="page-title">New session</div>
-        <div class="page-sub">Calculate costs — syncs to Google Sheets</div>
+  <!-- ══ CALCULATE ══ -->
+  <div class="view active" id="view-calc">
+
+    <div class="section-title">New session</div>
+    <div class="section-sub">Paste your LINE message to get started</div>
+
+    <!-- LINE paste -->
+    <div class="card">
+      <div class="card-label">LINE message</div>
+      <div class="field">
+        <textarea id="line-paste" placeholder="Paste LINE message here…&#10;e.g. 14 May @NLG 20.00-22.00&#10;1. Kan&#10;2. Wn…"></textarea>
       </div>
-
-      <div class="card">
-        <div class="card-label">Session details</div>
-        <div class="g2">
-          <div class="field"><label>Date</label><input type="date" id="c-date"></div>
-          <div class="field"><label>Courts booked</label><input type="number" id="c-courts" value="1" min="1"></div>
-        </div>
-        <div class="g3">
-          <div class="field">
-            <label>Court rate (฿/hr)</label>
-            <input type="number" id="c-court-rate" placeholder="from config">
-          </div>
-          <div class="field">
-            <label>Session hours</label>
-            <input type="number" id="c-hours" value="2" min="0.5" step="0.5">
-          </div>
-          <div class="field">
-            <label>Shuttles used</label>
-            <input type="number" id="c-shuttles" value="0" min="0">
-          </div>
-        </div>
-        <div class="g3">
-          <div class="field">
-            <label>Box price (฿)</label>
-            <input type="number" id="c-box-price" placeholder="from config">
-            <div class="field-hint">price per full box</div>
-          </div>
-          <div class="field">
-            <label>Shuttles / box</label>
-            <input type="number" id="c-shuttles-per-box" value="12" min="1">
-          </div>
-          <div class="field">
-            <label>Shuttle markup (%)</label>
-            <input type="number" id="c-shuttle-markup" value="5" min="0">
-            <div class="field-hint">applied after ÷ box size</div>
-          </div>
-        </div>
-        <div class="field" style="max-width:240px;">
-          <label>Per-person markup (฿)</label>
-          <input type="number" id="c-markup" value="10">
-          <div class="field-hint">flat added to each player's total</div>
-        </div>
+      <button class="btn btn-accent-soft" onclick="parseLine()">Parse message</button>
+      <div id="parse-result" style="display:none;margin-top:10px;">
+        <div class="paste-result" id="parse-preview"></div>
       </div>
+    </div>
 
-      <!-- Players -->
-      <div class="card">
-        <div class="card-label">Players this session</div>
-        <div id="c-players-list"></div>
-        <div style="display:flex;gap:8px;margin-top:6px;">
-          <input type="text" id="c-new-player" placeholder="Type name…" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);padding:9px 12px;color:var(--text);font-size:13px;font-family:'DM Mono',monospace;outline:none;" onkeydown="if(event.key==='Enter')addCalcPlayer()">
-          <button class="btn btn-ghost" onclick="addCalcPlayer()">+ Add</button>
-        </div>
-        <div id="c-roster-quick" style="margin-top:10px;"></div>
-      </div>
-
-      <!-- Extra hour -->
-      <div class="card">
-        <div class="card-label">Extra hour <span style="color:var(--muted);font-size:10px;margin-left:6px;">optional</span></div>
-        <div class="info-box">⚡ Same players staying longer. Charged at the same rates, split only among those staying.</div>
-        <div class="g3">
-          <div class="field"><label>Extra hours</label><input type="number" id="c-extra-hrs" value="0" min="0" step="0.5"></div>
-          <div class="field"><label>Extra courts</label><input type="number" id="c-extra-courts" value="1" min="1"></div>
-          <div class="field"><label>Extra shuttles</label><input type="number" id="c-extra-shuttles" value="0" min="0"></div>
+    <!-- Session costs -->
+    <div class="card">
+      <div class="card-label">Session costs</div>
+      <div class="g2" style="margin-bottom:10px;">
+        <div class="field">
+          <label>Courts used</label>
+          <input type="number" id="c-courts" value="2" min="1">
         </div>
         <div class="field">
-          <label>Who's staying?</label>
-          <div id="c-extra-players" style="display:flex;flex-wrap:wrap;margin-top:5px;"></div>
+          <label>Hours</label>
+          <input type="number" id="c-hours" value="2" min="0.5" step="0.5">
         </div>
       </div>
-
-      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
-        <button class="btn btn-primary" onclick="calculate()">Calculate ↓</button>
-        <button class="btn btn-ghost" onclick="resetCalc()">Reset</button>
+      <div class="field">
+        <label>Venue & rate</label>
+        <select id="c-venue-rate">
+          <option value="">Select venue + rate…</option>
+        </select>
       </div>
-
-      <!-- Results -->
-      <div id="results" style="display:none;">
-        <div class="card">
-          <div class="card-label">Results</div>
-          <div class="metrics" id="res-metrics"></div>
-          <div class="formula" id="res-formula"></div>
-          <div class="tbl-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Player</th><th>Court</th><th>Shuttle</th><th>Extra</th><th>Markup</th><th>Total</th>
-                </tr>
-              </thead>
-              <tbody id="res-tbody"></tbody>
-            </table>
-          </div>
-          <div class="sep"></div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('results').style.display='none'">Close</button>
-            <button class="btn btn-primary" id="save-btn" onclick="saveSession()">Save to Sheets ↗</button>
-          </div>
+      <div class="g2">
+        <div class="field">
+          <label>Shuttles used</label>
+          <input type="number" id="c-shuttles" value="0" min="0">
+        </div>
+        <div class="field">
+          <label>Box price (฿)</label>
+          <input type="number" id="c-box-price" placeholder="from config">
         </div>
       </div>
     </div>
 
-    <!-- ══ SESSIONS ══ -->
-    <div class="view" id="view-sessions">
-      <div class="page-hd">
-        <div class="page-title">Sessions</div>
-        <div class="page-sub" id="sessions-sub">Loading…</div>
+    <!-- Extra hour -->
+    <div class="card">
+      <div class="card-label">Extra hour <span style="color:var(--text3);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;">optional</span></div>
+      <div class="g3" style="margin-bottom:10px;">
+        <div class="field"><label>Extra hrs</label><input type="number" id="c-extra-hrs" value="0" min="0" step="0.5"></div>
+        <div class="field"><label>Extra courts</label><input type="number" id="c-extra-courts" value="1" min="1"></div>
+        <div class="field"><label>Extra shuttles</label><input type="number" id="c-extra-shuttles" value="0" min="0"></div>
       </div>
-      <div id="sessions-list"></div>
+      <div class="field">
+        <label>Who's staying?</label>
+        <div class="pill-wrap" id="c-extra-players"><span style="font-size:13px;color:var(--text3);">Add players below first.</span></div>
+      </div>
     </div>
 
-    <!-- ══ BALANCES ══ -->
-    <div class="view" id="view-balances">
-      <div class="page-hd">
-        <div class="page-title">Balances</div>
-        <div class="page-sub">Running totals across all sessions</div>
+    <!-- Players -->
+    <div class="card">
+      <div class="card-label">Players <span id="player-count" style="color:var(--accent);">0</span></div>
+      <div id="c-players-list"></div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <input type="text" id="c-new-player" placeholder="Add player name…" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:11px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;" onkeydown="if(event.key==='Enter')addCalcPlayer()">
+        <button class="btn btn-ghost btn-sm" style="width:auto;padding:0 16px;" onclick="addCalcPlayer()">+</button>
       </div>
-      <div class="metrics" id="bal-metrics"></div>
+      <div id="c-roster-quick"></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="calculate()" style="margin-bottom:12px;">Calculate →</button>
+
+    <!-- Results (hidden until calculate) -->
+    <div id="results-section" style="display:none;">
+      <div class="section-div">Results</div>
+
       <div class="card">
-        <div class="card-label">Per player</div>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>Player</th><th>Sessions</th><th>Total owed</th><th>Paid</th><th>Outstanding</th><th>Status</th></tr></thead>
-            <tbody id="bal-tbody"></tbody>
-          </table>
+        <div class="card-label">Base cost (no markup)</div>
+        <div class="g3" style="margin-bottom:12px;">
+          <div class="tile"><div class="tile-lbl">Court total</div><div class="tile-val" id="r-court-total">฿0</div></div>
+          <div class="tile"><div class="tile-lbl">Shuttle total</div><div class="tile-val" id="r-shuttle-total">฿0</div></div>
+          <div class="tile"><div class="tile-lbl">Per person</div><div class="tile-val acc" id="r-per-person">฿0</div></div>
         </div>
-      </div>
-    </div>
-
-    <!-- ══ CONFIG ══ -->
-    <div class="view" id="view-config">
-      <div class="page-hd">
-        <div class="page-title">Config</div>
-        <div class="page-sub">Prices & defaults — saved to Google Sheets</div>
+        <div class="formula-box" id="r-formula"></div>
       </div>
 
-      <div class="card">
-        <div class="card-label">Court</div>
-        <div class="g2">
-          <div class="field">
-            <label>Court rate (฿ / hr)</label>
-            <input type="number" id="cfg-court-rate" placeholder="e.g. 120">
-            <div class="field-hint">no markup applied</div>
+      <!-- Markup -->
+      <div class="markup-section">
+        <div class="markup-top">
+          <div class="markup-title">Your markup / person</div>
+          <div class="markup-input-wrap">
+            <div class="markup-prefix">฿</div>
+            <input type="number" class="markup-input" id="markup-input" value="20" min="0" oninput="updateFinal()">
           </div>
         </div>
+        <div class="final-row">
+          <div class="final-lbl">Final per person</div>
+          <div class="final-val" id="r-final">฿0</div>
+        </div>
+        <div id="r-extra-line" style="display:none;margin-top:6px;font-size:13px;color:var(--accent-d);"></div>
       </div>
 
+      <!-- Profit summary -->
       <div class="card">
-        <div class="card-label">Shuttle</div>
         <div class="g3">
-          <div class="field">
-            <label>Box price (฿)</label>
-            <input type="number" id="cfg-box-price" placeholder="e.g. 380">
-            <div class="field-hint">update freely — prices change often</div>
-          </div>
-          <div class="field">
-            <label>Shuttles per box</label>
-            <input type="number" id="cfg-shuttles-per-box" value="12" min="1">
-            <div class="field-hint">usually 12</div>
-          </div>
-          <div class="field">
-            <label>Shuttle markup (%)</label>
-            <input type="number" id="cfg-shuttle-markup" value="5" min="0">
-            <div class="field-hint">applied per shuttle after ÷ box</div>
-          </div>
-        </div>
-        <div class="info-box" id="shuttle-preview-box">
-          <span id="shuttle-preview">Shuttle price per piece: — </span>
+          <div class="tile"><div class="tile-lbl">Your profit</div><div class="tile-val grn" id="r-profit">฿0</div></div>
+          <div class="tile"><div class="tile-lbl">Total to collect</div><div class="tile-val acc" id="r-collect">฿0</div></div>
+          <div class="tile"><div class="tile-lbl">Players</div><div class="tile-val" id="r-players">0</div></div>
         </div>
       </div>
 
+      <!-- LINE template -->
       <div class="card">
-        <div class="card-label">Session defaults</div>
-        <div class="g2">
-          <div class="field">
-            <label>Per-person markup (฿)</label>
-            <input type="number" id="cfg-markup" placeholder="10">
-            <div class="field-hint">your flat profit per player</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-label">Player roster</div>
-        <div id="cfg-roster-list"></div>
-        <div style="display:flex;gap:8px;margin-top:8px;">
-          <input type="text" id="cfg-new-player" placeholder="Player name…" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);padding:9px 12px;color:var(--text);font-size:13px;font-family:'DM Mono',monospace;outline:none;" onkeydown="if(event.key==='Enter')addRosterPlayer()">
-          <button class="btn btn-ghost" onclick="addRosterPlayer()">+ Add</button>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-primary" onclick="saveConfig()">Save to Sheets ↗</button>
-        <button class="btn btn-ghost" onclick="loadConfig()">Reload from Sheets</button>
-      </div>
-    </div>
-
-    <!-- ══ SETUP ══ -->
-    <div class="view" id="view-setup">
-      <div class="page-hd">
-        <div class="page-title">Sheet setup</div>
-        <div class="page-sub">One-time Google Sheets connection</div>
-      </div>
-
-      <div class="setup-wrap" style="max-width:100%;padding:0;">
-        <div class="card">
-          <div class="card-label">Google Sheets API URL</div>
-          <div class="field">
-            <label>Web App URL</label>
-            <input type="text" id="api-url" placeholder="https://script.google.com/macros/s/…/exec">
-            <div class="field-hint">paste your Apps Script deployment URL here</div>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-primary" onclick="saveApiUrl()">Connect</button>
-            <button class="btn btn-ghost" onclick="testConnection()">Test connection</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-label">How to set up (one time)</div>
-          <div class="setup-step">
-            <div class="step-num">1</div>
-            <div class="step-body">
-              <div class="step-title">Create a new Google Sheet</div>
-              <div class="step-desc">Go to <a href="https://sheets.new" target="_blank" style="color:var(--accent);">sheets.new</a> and create a blank spreadsheet. Name it "Shuttlecock" or anything you like.</div>
-            </div>
-          </div>
-          <div class="setup-step">
-            <div class="step-num">2</div>
-            <div class="step-body">
-              <div class="step-title">Open Apps Script</div>
-              <div class="step-desc">In your sheet: <code>Extensions → Apps Script</code>. Delete any existing code.</div>
-            </div>
-          </div>
-          <div class="setup-step">
-            <div class="step-num">3</div>
-            <div class="step-body">
-              <div class="step-title">Paste the backend code</div>
-              <div class="step-desc">Download <code>Code.gs</code> (provided alongside this file) and paste its entire contents into the Apps Script editor. Click Save (Ctrl+S).</div>
-            </div>
-          </div>
-          <div class="setup-step">
-            <div class="step-num">4</div>
-            <div class="step-body">
-              <div class="step-title">Run the setup function</div>
-              <div class="step-desc">In Apps Script, select function <code>setup</code> from the dropdown and click Run. Accept any permissions. This creates all 5 sheet tabs automatically.</div>
-            </div>
-          </div>
-          <div class="setup-step">
-            <div class="step-num">5</div>
-            <div class="step-body">
-              <div class="step-title">Deploy as Web App</div>
-              <div class="step-desc">Click <code>Deploy → New deployment</code>. Type: <code>Web app</code>. Execute as: <code>Me</code>. Who has access: <code>Anyone</code>. Click Deploy and copy the URL.</div>
-            </div>
-          </div>
-          <div class="setup-step">
-            <div class="step-num">6</div>
-            <div class="step-body">
-              <div class="step-title">Paste the URL above</div>
-              <div class="step-desc">Paste the deployment URL into the field at the top of this page and click Connect. That's it — your app is now linked to your Sheet.</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-label" style="color:var(--danger);">Reset</div>
-          <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">Clear all locally cached data (does not affect Google Sheets).</p>
-          <button class="btn btn-danger" onclick="clearLocal()">Clear local cache</button>
+        <div class="card-label">LINE template</div>
+        <div class="line-template" id="line-template-preview"></div>
+        <div style="margin-top:10px;" class="btn-row">
+          <button class="btn btn-accent-soft" onclick="copyTemplate()">Copy to clipboard</button>
+          <button class="btn btn-primary" id="save-btn" onclick="saveSession()">Save ↗</button>
         </div>
       </div>
     </div>
+  </div>
 
-  </main>
+  <!-- ══ SUMMARY ══ -->
+  <div class="view" id="view-summary">
+    <div class="section-title">Summary</div>
+    <div class="section-sub">All-time · Courts + Shuttles</div>
+
+    <!-- Combined dark card -->
+    <div class="dark-card">
+      <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#7a6a58;margin-bottom:10px;">All-time · Courts + Shuttles</div>
+      <div class="dark-metrics">
+        <div class="dark-metric"><div class="dm-lbl">Total spent</div><div class="dm-val" id="s-total-spent">฿0</div></div>
+        <div class="dark-metric"><div class="dm-lbl">Recovered</div><div class="dm-val grn" id="s-recovered">฿0</div></div>
+        <div class="dark-metric"><div class="dm-lbl">Outstanding</div><div class="dm-val red" id="s-outstanding">฿0</div></div>
+      </div>
+      <div class="prog-bg"><div class="prog-bar" id="s-prog" style="width:0%"></div></div>
+      <div class="prog-lbl"><span id="s-prog-pct">0% recovered</span><span id="s-prog-left">฿0 to go</span></div>
+    </div>
+
+    <!-- Court stock -->
+    <div class="stock-grid">
+      <div class="stock-card">
+        <div class="stock-lbl">Courts</div>
+        <div class="stock-big" id="s-court-hrs">0</div>
+        <div class="stock-unit">hrs remaining</div>
+        <div class="stock-rows">
+          <div class="stock-row-item"><span class="sri-lbl">Spent</span><span class="sri-val" id="s-court-spent">฿0</span></div>
+          <div class="stock-row-item"><span class="sri-lbl">Recovered</span><span class="sri-val grn" id="s-court-rec">฿0</span></div>
+          <div class="stock-row-item"><span class="sri-lbl">Outstanding</span><span class="sri-val red" id="s-court-out">฿0</span></div>
+        </div>
+        <button class="btn btn-accent-soft" style="font-size:12px;padding:8px;" onclick="openModal('modal-court')">+ Top up</button>
+      </div>
+      <div class="stock-card">
+        <div class="stock-lbl">Shuttles</div>
+        <div class="stock-big" id="s-shuttle-stock">0</div>
+        <div class="stock-unit">shuttles left</div>
+        <div class="stock-rows">
+          <div class="stock-row-item"><span class="sri-lbl">Spent</span><span class="sri-val" id="s-shuttle-spent">฿0</span></div>
+          <div class="stock-row-item"><span class="sri-lbl">Recovered</span><span class="sri-val grn" id="s-shuttle-rec">฿0</span></div>
+          <div class="stock-row-item"><span class="sri-lbl">Outstanding</span><span class="sri-val red" id="s-shuttle-out">฿0</span></div>
+        </div>
+        <button class="btn btn-accent-soft" style="font-size:12px;padding:8px;" onclick="openModal('modal-shuttle')">+ Buy box</button>
+      </div>
+    </div>
+
+    <div class="warn-bar" id="shuttle-warn" style="display:none;">⚠ Low shuttle stock</div>
+
+    <!-- Profit summary -->
+    <div class="card">
+      <div class="card-label">Profit</div>
+      <div class="g2">
+        <div class="tile"><div class="tile-lbl">All-time profit</div><div class="tile-val grn" id="s-profit">฿0</div></div>
+        <div class="tile"><div class="tile-lbl">Sessions played</div><div class="tile-val" id="s-sessions">0</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SESSIONS ══ -->
+  <div class="view" id="view-sessions">
+    <div class="section-title">Sessions</div>
+    <div class="section-sub" id="sess-sub">Loading…</div>
+    <div id="sessions-list"></div>
+  </div>
+
+  <!-- ══ BALANCES ══ -->
+  <div class="view" id="view-balances">
+    <div class="section-title">Balances</div>
+    <div class="section-sub">All-time per player</div>
+    <div class="g3" style="margin-bottom:12px;">
+      <div class="tile"><div class="tile-lbl">Total owed</div><div class="tile-val" id="b-total">฿0</div></div>
+      <div class="tile"><div class="tile-lbl">Collected</div><div class="tile-val grn" id="b-collected">฿0</div></div>
+      <div class="tile"><div class="tile-lbl">Outstanding</div><div class="tile-val red" id="b-outstanding">฿0</div></div>
+    </div>
+    <div id="balances-list"></div>
+  </div>
+
+  <!-- ══ CONFIG ══ -->
+  <div class="view" id="view-config">
+    <div class="section-title">Config</div>
+    <div class="section-sub">Saved to Google Sheets</div>
+
+    <!-- Venues -->
+    <div class="card">
+      <div class="card-label">Venues & rates</div>
+      <div id="venues-list"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:4px;" onclick="openModal('modal-venue')">+ Add venue</button>
+    </div>
+
+    <!-- Shuttle -->
+    <div class="card">
+      <div class="card-label">Shuttle</div>
+      <div class="cfg-row"><div class="cfg-lbl">Box price<small>updates when you buy</small></div><div style="display:flex;align-items:center;gap:10px;"><div class="cfg-val" id="cfg-box-price-disp">–</div><span class="cfg-edit" onclick="openModal('modal-shuttle-cfg')">Edit</span></div></div>
+      <div class="cfg-row"><div class="cfg-lbl">Shuttles per box</div><div class="cfg-val" id="cfg-spb-disp">12</div></div>
+      <div class="cfg-row"><div class="cfg-lbl">Shuttle markup</div><div class="cfg-val" id="cfg-sm-disp">5%</div></div>
+    </div>
+
+    <!-- Payment -->
+    <div class="card">
+      <div class="card-label">Payment details</div>
+      <div class="cfg-row"><div class="cfg-lbl">Account number</div><div style="display:flex;align-items:center;gap:10px;"><div class="cfg-val" id="cfg-acc-disp">–</div><span class="cfg-edit" onclick="openModal('modal-payment')">Edit</span></div></div>
+      <div class="cfg-row"><div class="cfg-lbl">Bank</div><div class="cfg-val" id="cfg-bank-disp">–</div></div>
+      <div class="cfg-row"><div class="cfg-lbl">Account name</div><div class="cfg-val" id="cfg-name-disp">–</div></div>
+    </div>
+
+    <!-- Roster -->
+    <div class="card">
+      <div class="card-label">Player roster</div>
+      <div id="cfg-roster-list"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <input type="text" id="cfg-new-player" placeholder="Player name…" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:11px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;" onkeydown="if(event.key==='Enter')addRosterPlayer()">
+        <button class="btn btn-ghost btn-sm" style="width:auto;padding:0 16px;" onclick="addRosterPlayer()">+</button>
+      </div>
+    </div>
+
+    <!-- Sheets -->
+    <div class="card">
+      <div class="card-label">Google Sheets</div>
+      <div class="field">
+        <label>Web App URL</label>
+        <input type="text" id="cfg-api-url" placeholder="https://script.google.com/macros/s/…/exec">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveAllConfig()">Save all ↗</button>
+        <button class="btn btn-ghost" onclick="loadFromSheets()">Reload</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label" style="color:var(--red);">Reset</div>
+      <p style="font-size:13px;color:var(--text3);margin-bottom:12px;">Clear all local data. Does not affect Google Sheets.</p>
+      <button class="btn btn-danger btn-sm" onclick="clearLocal()">Clear local data</button>
+    </div>
+  </div>
+
 </div>
 
-<!-- Mobile nav -->
-<div class="mobile-nav">
-  <div class="mobile-nav-item active" id="mnav-calc" onclick="go('calc')">
-    <span class="mobile-nav-icon">⊕</span><span>Calc</span>
+<!-- Bottom tabs -->
+<nav class="bottom-tabs">
+  <div class="tab-item active" id="tab-calc" onclick="goTab('calc')">
+    <span class="tab-icon">⊕</span><span>Calculate</span>
   </div>
-  <div class="mobile-nav-item" id="mnav-sessions" onclick="go('sessions')">
-    <span class="mobile-nav-icon">≡</span><span>Sessions</span>
+  <div class="tab-item" id="tab-summary" onclick="goTab('summary')">
+    <span class="tab-icon">◈</span><span>Summary</span>
   </div>
-  <div class="mobile-nav-item" id="mnav-balances" onclick="go('balances')">
-    <span class="mobile-nav-icon">◎</span><span>Balances</span>
+  <div class="tab-item" id="tab-sessions" onclick="goTab('sessions')">
+    <span class="tab-icon">≡</span><span>Sessions</span>
   </div>
-  <div class="mobile-nav-item" id="mnav-config" onclick="go('config')">
-    <span class="mobile-nav-icon">◈</span><span>Config</span>
+  <div class="tab-item" id="tab-balances" onclick="goTab('balances')">
+    <span class="tab-icon">◎</span><span>Balances</span>
   </div>
-  <div class="mobile-nav-item" id="mnav-setup" onclick="go('setup')">
-    <span class="mobile-nav-icon">⚙</span><span>Setup</span>
+  <div class="tab-item" id="tab-config" onclick="goTab('config')">
+    <span class="tab-icon">⚙</span><span>Config</span>
   </div>
-</div>
+</nav>
 
+<!-- Toast -->
 <div id="toast"></div>
 
+<!-- ══ MODALS ══ -->
+
+<!-- Court top-up -->
+<div class="modal-overlay" id="modal-court" onclick="closeModalOutside(event,'modal-court')">
+  <div class="modal-sheet">
+    <div class="modal-title">Top up court credit</div>
+    <div class="g2">
+      <div class="field"><label>Courts purchased</label><input type="number" id="m-court-qty" value="8" min="1" oninput="updateCourtPreview()"></div>
+      <div class="field"><label>Hours / court</label><input type="number" id="m-court-hrs" value="2" min="0.5" step="0.5" oninput="updateCourtPreview()"></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Rate / hr (฿)</label><input type="number" id="m-court-rate" placeholder="e.g. 60" oninput="updateCourtPreview()"></div>
+      <div class="field"><label>Month</label><input type="text" id="m-court-month" placeholder="e.g. May 2025"></div>
+    </div>
+    <div class="modal-calc-preview" id="court-preview">Enter details to preview total</div>
+    <button class="btn btn-primary" onclick="topUpCourt()" style="margin-bottom:10px;">Add court hours</button>
+    <button class="btn btn-ghost" onclick="closeModal('modal-court')">Cancel</button>
+  </div>
+</div>
+
+<!-- Shuttle buy -->
+<div class="modal-overlay" id="modal-shuttle" onclick="closeModalOutside(event,'modal-shuttle')">
+  <div class="modal-sheet">
+    <div class="modal-title">Buy shuttle box</div>
+    <div class="g2">
+      <div class="field"><label>Boxes bought</label><input type="number" id="m-shuttle-boxes" value="1" min="1" oninput="updateShuttlePreview()"></div>
+      <div class="field"><label>Price / box (฿)</label><input type="number" id="m-shuttle-price" placeholder="e.g. 380" oninput="updateShuttlePreview()"></div>
+    </div>
+    <div class="field"><label>Shuttles / box</label><input type="number" id="m-shuttle-spb" value="12" min="1" oninput="updateShuttlePreview()"></div>
+    <div class="modal-calc-preview" id="shuttle-preview">Enter details to preview</div>
+    <button class="btn btn-primary" onclick="buyShuttles()" style="margin-bottom:10px;">Add shuttles</button>
+    <button class="btn btn-ghost" onclick="closeModal('modal-shuttle')">Cancel</button>
+  </div>
+</div>
+
+<!-- Add venue -->
+<div class="modal-overlay" id="modal-venue" onclick="closeModalOutside(event,'modal-venue')">
+  <div class="modal-sheet">
+    <div class="modal-title">Add venue</div>
+    <div class="field"><label>Venue name</label><input type="text" id="m-venue-name" placeholder="e.g. NLG"></div>
+    <div class="g2">
+      <div class="field"><label>Off-peak rate (฿/hr)</label><input type="number" id="m-venue-offpeak" placeholder="e.g. 60"></div>
+      <div class="field"><label>On-peak rate (฿/hr)</label><input type="number" id="m-venue-onpeak" placeholder="e.g. 80"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addVenue()" style="margin-bottom:10px;">Save venue</button>
+    <button class="btn btn-ghost" onclick="closeModal('modal-venue')">Cancel</button>
+  </div>
+</div>
+
+<!-- Shuttle config -->
+<div class="modal-overlay" id="modal-shuttle-cfg" onclick="closeModalOutside(event,'modal-shuttle-cfg')">
+  <div class="modal-sheet">
+    <div class="modal-title">Shuttle settings</div>
+    <div class="field"><label>Box price (฿)</label><input type="number" id="m-scfg-price" placeholder="e.g. 380"></div>
+    <div class="g2">
+      <div class="field"><label>Shuttles / box</label><input type="number" id="m-scfg-spb" value="12"></div>
+      <div class="field"><label>Markup (%)</label><input type="number" id="m-scfg-markup" value="5"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveShuttleCfg()" style="margin-bottom:10px;">Save</button>
+    <button class="btn btn-ghost" onclick="closeModal('modal-shuttle-cfg')">Cancel</button>
+  </div>
+</div>
+
+<!-- Payment details -->
+<div class="modal-overlay" id="modal-payment" onclick="closeModalOutside(event,'modal-payment')">
+  <div class="modal-sheet">
+    <div class="modal-title">Payment details</div>
+    <div class="field"><label>Account number</label><input type="text" id="m-pay-acc" placeholder="e.g. 1458483864"></div>
+    <div class="field"><label>Bank name</label><input type="text" id="m-pay-bank" placeholder="e.g. Kbank"></div>
+    <div class="field"><label>Account name</label><input type="text" id="m-pay-name" placeholder="e.g. Chanavi"></div>
+    <button class="btn btn-primary" onclick="savePayment()" style="margin-bottom:10px;">Save</button>
+    <button class="btn btn-ghost" onclick="closeModal('modal-payment')">Cancel</button>
+  </div>
+</div>
+
 <script>
-// ── State ──────────────────────────────────────────────────
+// ── Storage ────────────────────────────────────────────────────────
 const LS = {
-  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
-  set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
-  del: k => localStorage.removeItem(k)
+  g: k => { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
+  s: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+  d: k => localStorage.removeItem(k)
 };
 
-let API_URL = localStorage.getItem('shc_api_url') || '';
-let config = LS.get('shc_config') || {};
-let roster = LS.get('shc_roster') || [];
-let sessions = LS.get('shc_sessions') || [];
+// ── App state ──────────────────────────────────────────────────────
+let API_URL = localStorage.getItem('bc_api') || '';
+let config = LS.g('bc_cfg') || { venues: [], boxPrice: 380, shuttlesPerBox: 12, shuttleMarkup: 5, accNumber: '', bankName: '', accName: '', roster: [] };
+let sessions = LS.g('bc_sessions') || [];
+let stock = LS.g('bc_stock') || { courtHrs: 0, courtSpent: 0, shuttles: 0, shuttleSpent: 0, courtPurchases: [], shuttlePurchases: [] };
+let calcPlayers = [];
+let lastCalc = null;
+let currentTab = 'calc';
 
-let calcPlayers = []; // {name, extraStay}
-let lastResult = null;
+// ── Helpers ────────────────────────────────────────────────────────
+const fmt = n => '฿' + Math.round(n).toLocaleString();
+const fmtD = (n, d=2) => '฿' + (+n).toFixed(d);
+const ini = name => name.trim().split(' ').map(w => w[0]||'').join('').toUpperCase().slice(0,2) || '?';
+const av = (name, sm) => `<div class="av${sm?' sm':''}">${ini(name)}</div>`;
 
-// ── Toast ──────────────────────────────────────────────────
-function toast(msg, type='ok', dur=2800) {
+function toast(msg, type='', dur=2800) {
   const el = document.getElementById('toast');
   el.textContent = msg;
   el.className = 'show ' + type;
   clearTimeout(el._t);
-  el._t = setTimeout(() => { el.className = ''; }, dur);
+  el._t = setTimeout(() => el.className = '', dur);
 }
 
-// ── Sync status ──────────────────────────────────────────
 function setSyncStatus(state, label) {
-  const dot = document.getElementById('sync-dot');
-  const lbl = document.getElementById('sync-lbl');
-  dot.className = 'sync-dot ' + state;
-  lbl.textContent = label;
+  document.getElementById('sync-dot').className = 'sync-dot ' + state;
+  document.getElementById('sync-lbl').textContent = label;
 }
 
-// ── API calls ──────────────────────────────────────────────
-async function apiGet(action) {
-  if (!API_URL) throw new Error('No API URL set');
-  const url = API_URL + '?action=' + action + '&_=' + Date.now();
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return res.json();
-}
-
-async function apiPost(action, data) {
-  if (!API_URL) throw new Error('No API URL set');
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ action, data })
+// ── Navigation ─────────────────────────────────────────────────────
+const TABS = ['calc','summary','sessions','balances','config'];
+function goTab(tab) {
+  TABS.forEach(t => {
+    document.getElementById('view-' + t).classList.toggle('active', t === tab);
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
   });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return res.json();
+  document.getElementById('scroll-area').scrollTop = 0;
+  currentTab = tab;
+  if (tab === 'summary') renderSummary();
+  if (tab === 'sessions') renderSessions();
+  if (tab === 'balances') renderBalances();
+  if (tab === 'config') renderConfig();
 }
 
-// ── Navigation ─────────────────────────────────────────────
-const VIEWS = ['calc','sessions','balances','config','setup'];
-function go(view) {
-  VIEWS.forEach(v => {
-    document.getElementById('view-'+v).classList.toggle('active', v===view);
-    const sn = document.getElementById('nav-'+v);
-    const mn = document.getElementById('mnav-'+v);
-    if (sn) sn.classList.toggle('active', v===view);
-    if (mn) mn.classList.toggle('active', v===view);
-  });
-  if (view==='sessions') loadSessions();
-  if (view==='balances') loadBalances();
-  if (view==='config') renderConfig();
-  if (view==='setup') {
-    const inp = document.getElementById('api-url');
-    if (inp) inp.value = API_URL || '';
+// ── LINE parser ────────────────────────────────────────────────────
+function parseLine() {
+  const text = document.getElementById('line-paste').value.trim();
+  if (!text) { toast('Paste a LINE message first', 'err'); return; }
+
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  let date = '', venue = '', startH = 0, endH = 0, players = [];
+
+  // Parse header line
+  const headerLine = lines[0];
+  const dateMatch = headerLine.match(/(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i);
+  const venueMatch = headerLine.match(/@(\w+)/i);
+  const timeMatch = headerLine.match(/(\d{1,2})[.:](\d{2})\s*[-–]\s*(\d{1,2})[.:](\d{2})/);
+
+  if (dateMatch) {
+    const months = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+    const d = parseInt(dateMatch[1]);
+    const m = months[dateMatch[2].toLowerCase()];
+    const y = new Date().getFullYear();
+    date = new Date(y, m, d).toISOString().slice(0,10);
   }
+  if (venueMatch) venue = venueMatch[1];
+  if (timeMatch) {
+    startH = parseInt(timeMatch[1]) + parseInt(timeMatch[2])/60;
+    endH = parseInt(timeMatch[3]) + parseInt(timeMatch[4])/60;
+  }
+  const hours = endH > startH ? endH - startH : 0;
+  const timeStr = timeMatch ? `${timeMatch[1]}:${timeMatch[2]}–${timeMatch[3]}:${timeMatch[4]}` : '';
+
+  // Parse numbered players
+  for (let i = 1; i < lines.length; i++) {
+    const m = lines[i].match(/^\d+[.)]\s*(.+)/);
+    if (m) {
+      const name = m[1].replace(/\s*(paid|✓|✅|pay)/gi, '').trim();
+      if (name) players.push(name);
+    }
+  }
+
+  // Set session date & hours
+  if (date) { /* store for session */ }
+  if (hours > 0) document.getElementById('c-hours').value = hours;
+
+  // Auto-select venue rate
+  if (venue && config.venues.length) {
+    const v = config.venues.find(v2 => v2.name.toLowerCase() === venue.toLowerCase());
+    if (v) {
+      const sel = document.getElementById('c-venue-rate');
+      for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].text.toLowerCase().includes(venue.toLowerCase())) {
+          sel.selectedIndex = i; break;
+        }
+      }
+    }
+  }
+
+  // Load players
+  calcPlayers = players.map(name => ({ name, extraStay: false }));
+  renderCalcPlayers();
+
+  // Store parsed data
+  window._parsed = { date, venue, hours, timeStr, players };
+
+  // Show preview
+  const prev = document.getElementById('parse-preview');
+  prev.innerHTML = `
+    <div class="pr-row"><span class="pr-lbl">Date</span><span class="pr-val">${date || '—'}</span></div>
+    <div class="pr-row"><span class="pr-lbl">Venue</span><span class="pr-val acc">${venue ? '@' + venue : '—'}</span></div>
+    <div class="pr-row"><span class="pr-lbl">Time</span><span class="pr-val">${timeStr || '—'} ${hours ? '(' + hours + 'hrs)' : ''}</span></div>
+    <div class="pr-row"><span class="pr-lbl">Players found</span><span class="pr-val">${players.length}</span></div>
+  `;
+  document.getElementById('parse-result').style.display = 'block';
+  toast(`Parsed ${players.length} players ✓`, 'ok');
 }
 
-// ── Helpers ───────────────────────────────────────────────
-function fmt(n) { return '฿' + Math.round(n).toLocaleString(); }
-function fmtD(n, d=2) { return '฿' + (+n).toFixed(d); }
-function ini(name) { return name.trim().split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'?'; }
-function av(name, sm) {
-  const sz = sm ? 'width:22px;height:22px;font-size:9px;' : '';
-  return `<div class="av" style="${sz}">${ini(name)}</div>`;
-}
-
-// ── Calculate players UI ───────────────────────────────────
+// ── Player management ──────────────────────────────────────────────
 function renderCalcPlayers() {
   const el = document.getElementById('c-players-list');
+  document.getElementById('player-count').textContent = calcPlayers.length;
+
   if (!calcPlayers.length) {
-    el.innerHTML = '<p style="font-size:11px;color:var(--muted);margin-bottom:6px;">No players yet.</p>';
+    el.innerHTML = '<p style="font-size:13px;color:var(--text3);margin-bottom:8px;">No players added yet.</p>';
   } else {
-    el.innerHTML = calcPlayers.map((p,i) => `
-      <div class="pchip">
+    el.innerHTML = calcPlayers.map((p, i) => `
+      <div class="player-chip">
         ${av(p.name)}
         <span class="pname">${p.name}</span>
-        <button class="btn btn-danger" onclick="removeCalcPlayer(${i})">✕</button>
+        <button onclick="removeCalcPlayer(${i})" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:0 4px;">×</button>
       </div>`).join('');
   }
-  renderExtraPills();
+
+  // Extra pills
+  const ep = document.getElementById('c-extra-players');
+  if (!calcPlayers.length) {
+    ep.innerHTML = '<span style="font-size:13px;color:var(--text3);">Add players first.</span>';
+  } else {
+    ep.innerHTML = calcPlayers.map((p, i) =>
+      `<button class="pill-toggle${p.extraStay?' on':''}" onclick="toggleExtra(${i})">${p.extraStay?'✓ ':''} ${p.name}</button>`
+    ).join('');
+  }
 
   // Roster quick-add
-  const avail = roster.filter(r => !calcPlayers.find(p=>p.name===r));
+  const avail = (config.roster||[]).filter(r => !calcPlayers.find(p => p.name === r));
   const rq = document.getElementById('c-roster-quick');
   if (avail.length) {
-    rq.innerHTML = '<div style="font-size:10px;color:var(--muted);margin-bottom:6px;letter-spacing:0.05em;">QUICK ADD FROM ROSTER</div>' +
-      '<div style="display:flex;flex-wrap:wrap;gap:6px;">' +
-      avail.map(r=>`<button class="btn btn-ghost btn-sm" onclick="quickAdd('${r.replace(/'/g,"\\'")}')">+ ${r}</button>`).join('') +
-      '</div>';
+    rq.innerHTML = '<div style="font-size:11px;color:var(--text3);margin:8px 0 5px;letter-spacing:0.04em;">Quick add:</div><div class="quick-add-wrap">' +
+      avail.map(r => `<button class="quick-add-btn" onclick="quickAdd('${r.replace(/'/g,"\\'")}')">+ ${r}</button>`).join('') + '</div>';
   } else { rq.innerHTML = ''; }
-}
-
-function renderExtraPills() {
-  const el = document.getElementById('c-extra-players');
-  if (!calcPlayers.length) { el.innerHTML = '<span style="font-size:11px;color:var(--muted);">Add players first.</span>'; return; }
-  el.innerHTML = calcPlayers.map((p,i) =>
-    `<button class="pill-toggle ${p.extraStay?'on':''}" onclick="toggleExtra(${i})">${p.extraStay?'✓':''} ${p.name}</button>`
-  ).join('');
 }
 
 function addCalcPlayer() {
   const inp = document.getElementById('c-new-player');
   const name = inp.value.trim();
-  if (!name || calcPlayers.find(p=>p.name.toLowerCase()===name.toLowerCase())) { inp.value=''; return; }
-  calcPlayers.push({name, extraStay: false});
+  if (!name || calcPlayers.find(p => p.name.toLowerCase() === name.toLowerCase())) { inp.value = ''; return; }
+  calcPlayers.push({ name, extraStay: false });
   inp.value = '';
   renderCalcPlayers();
 }
 function quickAdd(name) {
-  if (calcPlayers.find(p=>p.name===name)) return;
-  calcPlayers.push({name, extraStay: false});
+  if (calcPlayers.find(p => p.name === name)) return;
+  calcPlayers.push({ name, extraStay: false });
   renderCalcPlayers();
 }
-function removeCalcPlayer(i) { calcPlayers.splice(i,1); renderCalcPlayers(); }
-function toggleExtra(i) { calcPlayers[i].extraStay = !calcPlayers[i].extraStay; renderExtraPills(); }
+function removeCalcPlayer(i) { calcPlayers.splice(i, 1); renderCalcPlayers(); }
+function toggleExtra(i) { calcPlayers[i].extraStay = !calcPlayers[i].extraStay; renderCalcPlayers(); }
 
-// ── Calculate ─────────────────────────────────────────────
+// ── Calculate ──────────────────────────────────────────────────────
 function calculate() {
-  const courts = +document.getElementById('c-courts').value || 1;
-  const courtRate = +document.getElementById('c-court-rate').value || 0;
+  const courts = +document.getElementById('c-courts').value || 0;
   const hours = +document.getElementById('c-hours').value || 0;
   const shuttles = +document.getElementById('c-shuttles').value || 0;
-  const boxPrice = +document.getElementById('c-box-price').value || 0;
-  const shuttlesPerBox = +document.getElementById('c-shuttles-per-box').value || 12;
-  const shuttleMarkup = (+document.getElementById('c-shuttle-markup').value || 0) / 100;
-  const markup = +document.getElementById('c-markup').value || 0;
+  const boxPrice = +document.getElementById('c-box-price').value || config.boxPrice || 0;
+  const shuttlesPerBox = config.shuttlesPerBox || 12;
+  const shuttleMarkup = (config.shuttleMarkup || 5) / 100;
   const extraHrs = +document.getElementById('c-extra-hrs').value || 0;
   const extraCourts = +document.getElementById('c-extra-courts').value || 1;
   const extraShuttles = +document.getElementById('c-extra-shuttles').value || 0;
   const n = calcPlayers.length;
 
-  if (!n) { toast('Add at least one player first.', 'err'); return; }
+  // Get selected rate
+  const sel = document.getElementById('c-venue-rate');
+  const rate = sel.value ? +sel.value : 0;
 
-  // Core calcs
-  const courtTotal = courtRate * hours * courts;
+  if (!n) { toast('Add at least one player', 'err'); return; }
+  if (!rate) { toast('Select a venue & rate', 'err'); return; }
+
+  const courtTotal = rate * hours * courts;
   const shuttlePriceEach = boxPrice > 0 ? (boxPrice / shuttlesPerBox) * (1 + shuttleMarkup) : 0;
   const shuttleTotal = shuttlePriceEach * shuttles;
   const baseTotal = courtTotal + shuttleTotal;
   const courtPer = courtTotal / n;
   const shuttlePer = shuttleTotal / n;
+  const basePer = baseTotal / n;
 
-  // Extra hour
-  const extraStaying = calcPlayers.filter(p=>p.extraStay);
+  // Extra
+  const extraStaying = calcPlayers.filter(p => p.extraStay);
   const ne = extraStaying.length;
   let extraCourtTotal = 0, extraShuttleTotal = 0, extraPer = 0;
   if (extraHrs > 0 && ne > 0) {
-    extraCourtTotal = courtRate * extraHrs * extraCourts;
+    extraCourtTotal = rate * extraHrs * extraCourts;
     extraShuttleTotal = shuttlePriceEach * extraShuttles;
     extraPer = (extraCourtTotal + extraShuttleTotal) / ne;
   }
 
-  // Per player
-  const breakdown = calcPlayers.map(p => {
-    const extra = (extraHrs > 0 && p.extraStay) ? extraPer : 0;
-    return { name: p.name, courtShare: courtPer, shuttleShare: shuttlePer, extra, markup, total: courtPer + shuttlePer + extra + markup, paid: false };
+  // Update UI
+  document.getElementById('r-court-total').textContent = fmt(courtTotal);
+  document.getElementById('r-shuttle-total').textContent = fmt(shuttleTotal);
+  document.getElementById('r-per-person').textContent = fmtD(basePer);
+
+  const shuttleFormula = boxPrice > 0
+    ? `(฿${boxPrice}÷${shuttlesPerBox})×${(1+shuttleMarkup).toFixed(2)}×${shuttles}÷${n}p = <span class="v">${fmtD(shuttlePer)}</span>`
+    : '<span class="v">฿0</span>';
+  document.getElementById('r-formula').innerHTML =
+    `<span class="hl">Court/person</span>  ฿${rate}×${hours}hr×${courts}ct÷${n}p = <span class="v">${fmtD(courtPer)}</span><br>` +
+    `<span class="hl">Shuttle/person</span>  ${shuttleFormula}<br>` +
+    (extraHrs > 0 && ne > 0 ? `<span class="hl">Extra/person</span>  (฿${rate}×${extraHrs}hr×${extraCourts}ct+shuttle×${extraShuttles})÷${ne}p = <span class="v">${fmtD(extraPer)}</span>` : '');
+
+  // Store calc data
+  const parsed = window._parsed || {};
+  lastCalc = {
+    id: Date.now(),
+    date: parsed.date || new Date().toISOString().slice(0,10),
+    venue: parsed.venue || '',
+    timeStr: parsed.timeStr || '',
+    courts, hours, rate, shuttles, boxPrice, shuttlesPerBox,
+    shuttleMarkupPct: config.shuttleMarkup || 5,
+    extraHrs, extraCourts, extraShuttles,
+    courtTotal, shuttleTotal, baseTotal, basePer,
+    shuttlePriceEach, extraPer, ne,
+    extraPlayerNames: extraStaying.map(p => p.name),
+    players: calcPlayers.map(p => ({ name: p.name, extraStay: p.extraStay })),
+    n
+  };
+
+  document.getElementById('results-section').style.display = 'block';
+  updateFinal();
+  document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateFinal() {
+  if (!lastCalc) return;
+  const markup = +document.getElementById('markup-input').value || 0;
+  const basePer = lastCalc.basePer;
+  const finalPer = basePer + markup;
+  const extraFinal = lastCalc.extraPer > 0 ? finalPer + lastCalc.extraPer : 0;
+  const n = lastCalc.n;
+  const profit = markup * n;
+  const totalCollect = (finalPer * n) + (extraFinal > 0 ? (extraFinal - finalPer) * lastCalc.ne : 0);
+
+  document.getElementById('r-final').textContent = fmt(finalPer);
+  document.getElementById('r-profit').textContent = fmt(profit);
+  document.getElementById('r-collect').textContent = fmt(totalCollect);
+  document.getElementById('r-players').textContent = n;
+
+  const extraLine = document.getElementById('r-extra-line');
+  if (lastCalc.extraPer > 0) {
+    extraLine.style.display = 'block';
+    extraLine.textContent = `Extra hour: ${fmt(extraFinal)} (${lastCalc.ne} player${lastCalc.ne>1?'s':''})`;
+  } else {
+    extraLine.style.display = 'none';
+  }
+
+  lastCalc._markup = markup;
+  lastCalc._finalPer = finalPer;
+  lastCalc._extraFinal = extraFinal;
+  lastCalc._profit = profit;
+  lastCalc._totalCollect = totalCollect;
+
+  generateLineTemplate();
+}
+
+function generateLineTemplate() {
+  if (!lastCalc) return;
+  const { date, venue, timeStr, players, n } = lastCalc;
+  const finalPer = lastCalc._finalPer || lastCalc.basePer;
+  const extraFinal = lastCalc._extraFinal || 0;
+  const hasExtra = extraFinal > 0 && lastCalc.extraPer > 0;
+
+  const dateStr = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  const header = [dateStr, venue ? '@' + venue : '', timeStr].filter(Boolean).join(' ');
+
+  const bank = config.accNumber ? `${config.accNumber}\n${config.bankName}${config.accName ? ' - ' + config.accName : ''}` : '';
+
+  let lines = [header];
+  if (bank) lines.push('', bank);
+  lines.push('');
+  lines.push(fmt(finalPer) + ' per person');
+  if (hasExtra) lines.push(fmt(extraFinal) + ' for extra hour');
+  lines.push('');
+  players.forEach((p, i) => {
+    const isExtra = lastCalc.extraPlayerNames.includes(p.name);
+    lines.push(`${i + 1}. ${p.name}${isExtra ? '+' : ''}`);
   });
 
-  const totalCollect = breakdown.reduce((s,p)=>s+p.total, 0);
-  const myProfit = markup * n;
-  const extraTotal = extraCourtTotal + extraShuttleTotal;
-
-  // Metrics
-  document.getElementById('res-metrics').innerHTML = `
-    <div class="metric"><div class="metric-lbl">Base cost</div><div class="metric-val">${fmt(baseTotal)}</div></div>
-    <div class="metric"><div class="metric-lbl">Total to collect</div><div class="metric-val yellow">${fmt(totalCollect)}</div></div>
-    <div class="metric"><div class="metric-lbl">Your profit</div><div class="metric-val green">${fmt(myProfit)}</div></div>
-  `;
-
-  // Formula
-  const shuttleFormula = boxPrice > 0
-    ? `(฿${boxPrice}÷${shuttlesPerBox})×${(1+shuttleMarkup).toFixed(2)} = <span class="v">${fmtD(shuttlePriceEach)}/shuttle</span> × ${shuttles} ÷ ${n}p = <span class="v">${fmtD(shuttlePer)}</span>`
-    : `<span class="v">฿0 (no shuttle cost)</span>`;
-  document.getElementById('res-formula').innerHTML = `
-    <span class="hl">Court/person</span>  ฿${courtRate}×${hours}hr×${courts}ct ÷ ${n}p = <span class="v">${fmtD(courtPer)}</span><br>
-    <span class="hl">Shuttle/person</span> ${shuttleFormula}<br>
-    <span class="hl">Markup</span>         +฿${markup}/person<br>
-    ${extraHrs>0&&ne>0 ? `<span class="hl">Extra/person</span>  (฿${courtRate}×${extraHrs}hr×${extraCourts}ct + shuttle×${extraShuttles}) ÷ ${ne}p = <span class="v">${fmtD(extraPer)}</span>` : ''}
-  `;
-
-  // Table
-  document.getElementById('res-tbody').innerHTML = breakdown.map(p => `
-    <tr>
-      <td><div style="display:flex;align-items:center;gap:8px;">${av(p.name,true)}<span>${p.name}</span></div></td>
-      <td>${fmt(p.courtShare)}</td>
-      <td>${fmt(p.shuttleShare)}</td>
-      <td>${p.extra>0 ? fmt(p.extra) : '<span style="color:var(--muted)">—</span>'}</td>
-      <td>+${fmt(p.markup)}</td>
-      <td style="font-weight:500;color:var(--accent);">${fmt(p.total)}</td>
-    </tr>`).join('');
-
-  document.getElementById('results').style.display = 'block';
-  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
-
-  lastResult = {
-    id: Date.now(),
-    date: document.getElementById('c-date').value || new Date().toISOString().slice(0,10),
-    courts, courtRate, hours, shuttles, boxPrice, shuttlesPerBox,
-    shuttleMarkup: shuttleMarkup*100, markup,
-    extraHours: extraHrs, extraCourts, extraShuttles,
-    myProfit, totalCollect, breakdown
-  };
+  document.getElementById('line-template-preview').textContent = lines.join('\n');
 }
 
-// ── Save session ───────────────────────────────────────────
+function copyTemplate() {
+  const text = document.getElementById('line-template-preview').textContent;
+  if (!text) { toast('Nothing to copy', 'err'); return; }
+  navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard ✓', 'ok')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    toast('Copied ✓', 'ok');
+  });
+}
+
+// ── Save session ───────────────────────────────────────────────────
 async function saveSession() {
-  if (!lastResult) return;
+  if (!lastCalc) return;
   const btn = document.getElementById('save-btn');
-  btn.innerHTML = '<span class="spinner"></span> Saving…';
+  btn.innerHTML = '<span class="spinner"></span>';
   btn.disabled = true;
 
-  try {
-    if (API_URL) {
-      setSyncStatus('loading','Saving…');
-      const r = await apiPost('saveSession', lastResult);
-      if (!r.ok) throw new Error(r.error);
-      setSyncStatus('ok','Synced');
-      toast('Session saved to Sheets ✓','ok');
-    } else {
-      toast('Saved locally (no Sheets connected)','ok');
-    }
-    // Also cache locally
-    sessions.unshift(lastResult);
-    LS.set('shc_sessions', sessions);
-    resetCalc();
-    go('sessions');
-  } catch(e) {
-    setSyncStatus('err','Sync failed');
-    toast('Save failed: ' + e.message, 'err', 5000);
-  } finally {
-    btn.innerHTML = 'Save to Sheets ↗';
-    btn.disabled = false;
-  }
-}
+  const sess = {
+    ...lastCalc,
+    markup: lastCalc._markup || 0,
+    finalPer: lastCalc._finalPer || lastCalc.basePer,
+    extraFinal: lastCalc._extraFinal || 0,
+    profit: lastCalc._profit || 0,
+    totalCollect: lastCalc._totalCollect || 0,
+  };
 
-function resetCalc() {
+  // Deduct from stock
+  const courtHrsUsed = sess.courts * sess.hours;
+  stock.courtHrs = Math.max(0, (stock.courtHrs || 0) - courtHrsUsed);
+  stock.shuttles = Math.max(0, (stock.shuttles || 0) - sess.shuttles);
+  LS.s('bc_stock', stock);
+
+  sessions.unshift(sess);
+  LS.s('bc_sessions', sessions);
+
+  if (API_URL) {
+    try {
+      setSyncStatus('loading', 'Saving…');
+      await apiPost('saveSession', sess);
+      setSyncStatus('ok', 'Synced');
+      toast('Session saved to Sheets ✓', 'ok');
+    } catch(e) {
+      setSyncStatus('err', 'Sync failed');
+      toast('Saved locally, Sheets sync failed', 'err');
+    }
+  } else {
+    toast('Saved locally ✓', 'ok');
+  }
+
+  btn.innerHTML = 'Save ↗';
+  btn.disabled = false;
+  document.getElementById('results-section').style.display = 'none';
   calcPlayers = [];
-  lastResult = null;
-  document.getElementById('c-date').value = new Date().toISOString().slice(0,10);
-  document.getElementById('c-courts').value = 1;
-  document.getElementById('c-hours').value = 2;
-  document.getElementById('c-shuttles').value = 0;
-  document.getElementById('c-extra-hrs').value = 0;
-  document.getElementById('c-extra-courts').value = 1;
-  document.getElementById('c-extra-shuttles').value = 0;
-  document.getElementById('results').style.display = 'none';
-  applyConfigToCalc();
+  lastCalc = null;
+  window._parsed = null;
+  document.getElementById('line-paste').value = '';
+  document.getElementById('parse-result').style.display = 'none';
   renderCalcPlayers();
+  renderSummary();
 }
 
-// ── Sessions ───────────────────────────────────────────────
-async function loadSessions() {
-  const el = document.getElementById('sessions-list');
-  const sub = document.getElementById('sessions-sub');
-  el.innerHTML = '<div class="empty"><span class="spinner"></span></div>';
-
-  try {
-    if (API_URL) {
-      setSyncStatus('loading','Loading…');
-      const r = await apiGet('getSessions');
-      if (r.ok) {
-        sessions = r.sessions;
-        LS.set('shc_sessions', sessions);
-        setSyncStatus('ok','Synced');
-      }
-    }
-    renderSessions();
-    sub.textContent = sessions.length + ' session' + (sessions.length!==1?'s':'') + ' recorded';
-  } catch(e) {
-    setSyncStatus('err','Offline');
-    renderSessions(); // use local cache
-    sub.textContent = 'Showing local cache (Sheets offline)';
+// ── Summary ────────────────────────────────────────────────────────
+function renderSummary() {
+  // Compute recovered from sessions
+  let courtRecovered = 0, shuttleRecovered = 0, totalProfit = 0;
+  for (const s of sessions) {
+    courtRecovered += s.courtTotal || 0;
+    shuttleRecovered += s.shuttleTotal || 0;
+    totalProfit += s.profit || 0;
   }
+
+  const courtSpent = stock.courtSpent || 0;
+  const shuttleSpent = stock.shuttleSpent || 0;
+  const totalSpent = courtSpent + shuttleSpent;
+  const totalRecovered = courtRecovered + shuttleRecovered;
+  const outstanding = Math.max(0, totalSpent - totalRecovered);
+  const pct = totalSpent > 0 ? Math.round(totalRecovered / totalSpent * 100) : 0;
+
+  document.getElementById('s-total-spent').textContent = fmt(totalSpent);
+  document.getElementById('s-recovered').textContent = fmt(totalRecovered);
+  document.getElementById('s-outstanding').textContent = fmt(outstanding);
+  document.getElementById('s-prog').style.width = pct + '%';
+  document.getElementById('s-prog-pct').textContent = pct + '% recovered';
+  document.getElementById('s-prog-left').textContent = fmt(outstanding) + ' to go';
+
+  document.getElementById('s-court-hrs').textContent = stock.courtHrs || 0;
+  document.getElementById('s-court-hrs').className = 'stock-big' + ((stock.courtHrs || 0) <= 2 ? ' low' : '');
+  document.getElementById('s-court-spent').textContent = fmt(courtSpent);
+  document.getElementById('s-court-rec').textContent = fmt(courtRecovered);
+  document.getElementById('s-court-out').textContent = fmt(Math.max(0, courtSpent - courtRecovered));
+
+  const shuttleStock = stock.shuttles || 0;
+  document.getElementById('s-shuttle-stock').textContent = shuttleStock;
+  document.getElementById('s-shuttle-stock').className = 'stock-big' + (shuttleStock <= 3 ? ' low' : '');
+  document.getElementById('s-shuttle-spent').textContent = fmt(shuttleSpent);
+  document.getElementById('s-shuttle-rec').textContent = fmt(shuttleRecovered);
+  document.getElementById('s-shuttle-out').textContent = fmt(Math.max(0, shuttleSpent - shuttleRecovered));
+
+  document.getElementById('shuttle-warn').style.display = shuttleStock <= 3 ? 'flex' : 'none';
+  document.getElementById('shuttle-warn').textContent = `⚠ Low shuttle stock — only ${shuttleStock} left`;
+
+  document.getElementById('s-profit').textContent = fmt(totalProfit);
+  document.getElementById('s-sessions').textContent = sessions.length;
 }
 
+// ── Sessions ───────────────────────────────────────────────────────
 function renderSessions() {
   const el = document.getElementById('sessions-list');
+  const sub = document.getElementById('sess-sub');
+  sub.textContent = sessions.length + ' session' + (sessions.length !== 1 ? 's' : '') + ' recorded';
+
   if (!sessions.length) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">○</div>No sessions yet.</div>';
     return;
   }
-  el.innerHTML = sessions.map((sess, si) => {
-    const paidCount = (sess.breakdown||[]).filter(p=>p.paid).length;
-    const total = (sess.breakdown||[]).length;
-    const allPaid = paidCount===total;
-    const nonePaid = paidCount===0;
-    const badge = allPaid
-      ? '<span class="badge badge-paid">All paid</span>'
-      : nonePaid
-        ? `<span class="badge badge-unpaid">${total} unpaid</span>`
-        : `<span class="badge badge-partial">${paidCount}/${total} paid</span>`;
-    const dateStr = sess.date ? new Date(sess.date+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
 
+  el.innerHTML = sessions.map((sess, si) => {
+    const dateStr = sess.date ? new Date(sess.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
     return `
     <div class="sess-card">
       <div class="sess-hd" onclick="toggleSess(${si})">
         <div class="sess-date">${dateStr}</div>
-        ${badge}
-        <span style="font-size:11px;color:var(--muted);">${total}p · ${fmt(sess.totalCollect||0)}</span>
-        <span style="font-size:11px;color:var(--accent);">+${fmt(sess.myProfit||0)}</span>
-        <span class="chev" id="chev-${si}">▼</span>
+        ${sess.venue ? `<div class="sess-venue">@${sess.venue}</div>` : ''}
+        <div class="sess-chev" id="sc-${si}">▼</div>
       </div>
-      <div class="sess-bd" id="sb-${si}">
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>Player</th><th>Court</th><th>Shuttle</th><th>Extra</th><th>Markup</th><th>Total</th><th>Paid</th></tr></thead>
-            <tbody>
-              ${(sess.breakdown||[]).map((p,pi)=>`
-                <tr>
-                  <td><div style="display:flex;align-items:center;gap:7px;">${av(p.name,true)}<span>${p.name}</span></div></td>
-                  <td>${fmt(p.courtShare||0)}</td>
-                  <td>${fmt(p.shuttleShare||0)}</td>
-                  <td>${(p.extra||0)>0?fmt(p.extra):'—'}</td>
-                  <td>+${fmt(p.markup||0)}</td>
-                  <td style="font-weight:500;">${fmt(p.total||0)}</td>
-                  <td>
-                    <button style="background:none;border:none;cursor:pointer;padding:0;" onclick="togglePaid(${si},${pi},'${p.name.replace(/'/g,"\\'")}',${sess.id})">
-                      ${p.paid ? '<span class="badge badge-paid">Paid</span>' : '<span class="badge badge-unpaid">Unpaid</span>'}
-                    </button>
-                  </td>
-                </tr>`).join('')}
-            </tbody>
-          </table>
+      <div class="sess-body" id="sb-${si}">
+        <div class="sess-meta-row">
+          <span class="badge badge-acc">${sess.n || 0} players</span>
+          <span class="badge badge-green">profit ${fmt(sess.profit || 0)}</span>
         </div>
-        <div style="display:flex;justify-content:flex-end;margin-top:12px;">
-          <button class="btn btn-danger btn-sm" onclick="deleteSession(${si},${sess.id})">Delete session</button>
+        <div class="g3">
+          <div class="tile"><div class="tile-lbl">Court cost</div><div class="tile-val">${fmt(sess.courtTotal || 0)}</div></div>
+          <div class="tile"><div class="tile-lbl">Shuttle cost</div><div class="tile-val">${fmt(sess.shuttleTotal || 0)}</div></div>
+          <div class="tile"><div class="tile-lbl">Total spent</div><div class="tile-val acc">${fmt((sess.courtTotal||0) + (sess.shuttleTotal||0))}</div></div>
+        </div>
+        <div class="sep"></div>
+        <div style="display:flex;justify-content:flex-end;">
+          <button class="btn btn-danger btn-sm" style="width:auto;padding:8px 16px;" onclick="deleteSession(${si})">Delete</button>
         </div>
       </div>
     </div>`;
@@ -1134,260 +1256,340 @@ function renderSessions() {
 }
 
 function toggleSess(i) {
-  document.getElementById('sb-'+i).classList.toggle('open');
-  document.getElementById('chev-'+i).classList.toggle('open');
+  document.getElementById('sb-' + i).classList.toggle('open');
+  document.getElementById('sc-' + i).classList.toggle('open');
 }
 
-async function togglePaid(si, pi, playerName, sessId) {
-  const newPaid = !sessions[si].breakdown[pi].paid;
-  sessions[si].breakdown[pi].paid = newPaid;
-  LS.set('shc_sessions', sessions);
-  renderSessions();
-  if (API_URL) {
-    try {
-      await apiPost('togglePaid', { sessionId: sessId, playerName, paid: newPaid });
-      toast((newPaid?'Marked paid':'Marked unpaid')+': '+playerName,'ok');
-    } catch(e) {
-      toast('Sheets sync failed, updated locally','err');
-    }
-  }
-}
-
-async function deleteSession(si, sessId) {
+function deleteSession(si) {
   if (!confirm('Delete this session?')) return;
-  sessions.splice(si,1);
-  LS.set('shc_sessions', sessions);
+  sessions.splice(si, 1);
+  LS.s('bc_sessions', sessions);
   renderSessions();
-  if (API_URL) {
-    try {
-      await apiPost('deleteSession', { sessionId: sessId });
-      toast('Session deleted','ok');
-    } catch(e) {
-      toast('Sheets sync failed, deleted locally','err');
-    }
-  }
+  renderSummary();
 }
 
-// ── Balances ───────────────────────────────────────────────
-async function loadBalances() {
-  try {
-    if (API_URL) {
-      setSyncStatus('loading','Loading…');
-      const r = await apiGet('getSessions');
-      if (r.ok) { sessions = r.sessions; LS.set('shc_sessions', sessions); }
-      setSyncStatus('ok','Synced');
-    }
-    renderBalances();
-  } catch(e) {
-    setSyncStatus('err','Offline');
-    renderBalances();
-  }
-}
-
+// ── Balances ───────────────────────────────────────────────────────
 function renderBalances() {
   const balMap = {};
   for (const sess of sessions) {
-    for (const p of (sess.breakdown||[])) {
-      if (!balMap[p.name]) balMap[p.name] = { sessions: 0, owed: 0, paid: 0 };
+    for (const p of (sess.players || [])) {
+      if (!balMap[p.name]) balMap[p.name] = { sessions: 0, owed: 0 };
       balMap[p.name].sessions++;
-      balMap[p.name].owed += +p.total||0;
-      if (p.paid) balMap[p.name].paid += +p.total||0;
+      const amt = p.extraStay && sess._extraFinal ? sess._extraFinal : sess.finalPer || sess.basePer || 0;
+      balMap[p.name].owed += amt;
     }
   }
-  const totalProfit = sessions.reduce((s,se)=>s+(se.myProfit||0),0);
+
   const entries = Object.entries(balMap);
-  const totalCollected = entries.reduce((s,[,b])=>s+b.paid,0);
-  const totalOwed = entries.reduce((s,[,b])=>s+b.owed,0);
-  const outstanding = totalOwed - totalCollected;
+  const totalOwed = entries.reduce((s, [,b]) => s + b.owed, 0);
 
-  document.getElementById('bal-metrics').innerHTML = `
-    <div class="metric"><div class="metric-lbl">Collected</div><div class="metric-val">${fmt(totalCollected)}</div></div>
-    <div class="metric"><div class="metric-lbl">Outstanding</div><div class="metric-val red">${fmt(outstanding)}</div></div>
-    <div class="metric"><div class="metric-lbl">Total profit</div><div class="metric-val green">${fmt(totalProfit)}</div></div>
-  `;
+  document.getElementById('b-total').textContent = fmt(totalOwed);
+  document.getElementById('b-collected').textContent = '฿0';
+  document.getElementById('b-outstanding').textContent = fmt(totalOwed);
 
+  const el = document.getElementById('balances-list');
   if (!entries.length) {
-    document.getElementById('bal-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:28px;">No data yet.</td></tr>';
+    el.innerHTML = '<div class="empty"><div class="empty-icon">○</div>No data yet.</div>';
     return;
   }
 
-  document.getElementById('bal-tbody').innerHTML = entries
-    .sort(([,a],[,b])=>(b.owed-b.paid)-(a.owed-a.paid))
-    .map(([name,b])=>{
-      const bal = b.owed - b.paid;
-      const pct = b.owed > 0 ? Math.round(b.paid/b.owed*100) : 100;
-      return `<tr>
-        <td><div style="display:flex;align-items:center;gap:8px;">${av(name,true)}<span>${name}</span></div></td>
-        <td style="color:var(--muted);">${b.sessions}</td>
-        <td>${fmt(b.owed)}</td>
-        <td>${fmt(b.paid)}<div class="bal-bar-wrap"><div class="bal-bar" style="width:${pct}%"></div></div></td>
-        <td style="color:${bal>0?'var(--danger)':'var(--success)'};">${bal>0?fmt(bal):'—'}</td>
-        <td>${bal<=0?'<span class="badge badge-paid">Settled</span>':'<span class="badge badge-unpaid">Owes</span>'}</td>
-      </tr>`;
-    }).join('');
+  el.innerHTML = entries.sort((a,b) => b[1].owed - a[1].owed).map(([name, b]) => `
+    <div class="bal-card">
+      <div class="bal-top">
+        <div class="bal-name">${name}</div>
+        <span class="badge badge-acc">${b.sessions} session${b.sessions>1?'s':''}</span>
+      </div>
+      <div class="bal-sub">Total owed: ${fmt(b.owed)}</div>
+    </div>`).join('');
 }
 
-// ── Config ─────────────────────────────────────────────────
+// ── Config ─────────────────────────────────────────────────────────
 function renderConfig() {
-  document.getElementById('cfg-court-rate').value = config.court_rate_per_hr || '';
-  document.getElementById('cfg-box-price').value = config.box_price || '';
-  document.getElementById('cfg-shuttles-per-box').value = config.shuttles_per_box || 12;
-  document.getElementById('cfg-shuttle-markup').value = config.shuttle_markup_pct || 5;
-  document.getElementById('cfg-markup').value = config.per_person_markup || 10;
-  updateShuttlePreview();
+  document.getElementById('cfg-api-url').value = API_URL || '';
 
-  const el = document.getElementById('cfg-roster-list');
-  if (!roster.length) {
-    el.innerHTML = '<p style="font-size:11px;color:var(--muted);margin-bottom:8px;">No players yet.</p>';
+  // Venues
+  const vl = document.getElementById('venues-list');
+  if (!(config.venues || []).length) {
+    vl.innerHTML = '<p style="font-size:13px;color:var(--text3);margin-bottom:8px;">No venues yet.</p>';
   } else {
-    el.innerHTML = roster.map((r,i)=>`
-      <div class="pchip">
-        ${av(r)}
-        <span class="pname">${r}</span>
-        <button class="btn btn-danger" onclick="removeRosterPlayer(${i})">✕</button>
+    vl.innerHTML = config.venues.map((v, i) => `
+      <div class="venue-item">
+        <div class="venue-name">${v.name}</div>
+        <div class="venue-rates">
+          <div class="vrate">Off-peak <span>${fmt(v.offPeak)}/hr</span></div>
+          <div class="vrate">On-peak <span>${fmt(v.onPeak)}/hr</span></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:6px;">
+          <button class="btn btn-danger btn-sm" style="width:auto;padding:5px 12px;font-size:11px;" onclick="removeVenue(${i})">Remove</button>
+        </div>
       </div>`).join('');
   }
 
-  // Wire preview updates
-  ['cfg-box-price','cfg-shuttles-per-box','cfg-shuttle-markup'].forEach(id=>{
-    document.getElementById(id).oninput = updateShuttlePreview;
-  });
-}
+  // Shuttle
+  document.getElementById('cfg-box-price-disp').textContent = config.boxPrice ? fmt(config.boxPrice) : '—';
+  document.getElementById('cfg-spb-disp').textContent = config.shuttlesPerBox || 12;
+  document.getElementById('cfg-sm-disp').textContent = (config.shuttleMarkup || 5) + '%';
 
-function updateShuttlePreview() {
-  const box = +document.getElementById('cfg-box-price').value || 0;
-  const perBox = +document.getElementById('cfg-shuttles-per-box').value || 12;
-  const markup = +document.getElementById('cfg-shuttle-markup').value || 0;
-  const el = document.getElementById('shuttle-preview');
-  if (box > 0) {
-    const each = (box / perBox) * (1 + markup/100);
-    el.textContent = `฿${box} ÷ ${perBox} × ${(1+markup/100).toFixed(2)} = ฿${each.toFixed(2)} per shuttle`;
+  // Payment
+  document.getElementById('cfg-acc-disp').textContent = config.accNumber || '—';
+  document.getElementById('cfg-bank-disp').textContent = config.bankName || '—';
+  document.getElementById('cfg-name-disp').textContent = config.accName || '—';
+
+  // Roster
+  const rl = document.getElementById('cfg-roster-list');
+  if (!(config.roster || []).length) {
+    rl.innerHTML = '<p style="font-size:13px;color:var(--text3);margin-bottom:8px;">No players yet.</p>';
   } else {
-    el.textContent = 'Enter box price to preview shuttle unit cost';
+    rl.innerHTML = config.roster.map((r, i) => `
+      <div class="player-chip">
+        ${av(r)}
+        <span class="pname">${r}</span>
+        <button onclick="removeRosterPlayer(${i})" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:0 4px;">×</button>
+      </div>`).join('');
   }
+
+  renderVenueSelect();
 }
 
-async function loadConfig() {
-  if (!API_URL) { toast('Connect Google Sheets first', 'err'); return; }
-  try {
-    setSyncStatus('loading','Loading config…');
-    const [cr, rr] = await Promise.all([apiGet('getConfig'), apiGet('getRoster')]);
-    if (cr.ok) { config = cr.config; LS.set('shc_config', config); }
-    if (rr.ok) { roster = rr.roster; LS.set('shc_roster', roster); }
-    setSyncStatus('ok','Synced');
-    renderConfig();
-    applyConfigToCalc();
-    toast('Config loaded from Sheets ✓','ok');
-  } catch(e) {
-    setSyncStatus('err','Failed');
-    toast('Load failed: '+e.message,'err',5000);
-  }
+function renderVenueSelect() {
+  const sel = document.getElementById('c-venue-rate');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Select venue + rate…</option>';
+  (config.venues || []).forEach(v => {
+    const o1 = document.createElement('option');
+    o1.value = v.offPeak; o1.textContent = `${v.name} — Off-peak (฿${v.offPeak}/hr)`;
+    const o2 = document.createElement('option');
+    o2.value = v.onPeak; o2.textContent = `${v.name} — On-peak (฿${v.onPeak}/hr)`;
+    sel.appendChild(o1); sel.appendChild(o2);
+  });
+  if (cur) sel.value = cur;
+  if (config.boxPrice) document.getElementById('c-box-price').value = config.boxPrice;
 }
 
-async function saveConfig() {
-  config.court_rate_per_hr = +document.getElementById('cfg-court-rate').value || '';
-  config.box_price = +document.getElementById('cfg-box-price').value || '';
-  config.shuttles_per_box = +document.getElementById('cfg-shuttles-per-box').value || 12;
-  config.shuttle_markup_pct = +document.getElementById('cfg-shuttle-markup').value || 5;
-  config.per_person_markup = +document.getElementById('cfg-markup').value || 10;
-  LS.set('shc_config', config);
-  applyConfigToCalc();
+function addVenue() {
+  const name = document.getElementById('m-venue-name').value.trim();
+  const offPeak = +document.getElementById('m-venue-offpeak').value;
+  const onPeak = +document.getElementById('m-venue-onpeak').value;
+  if (!name || !offPeak || !onPeak) { toast('Fill in all fields', 'err'); return; }
+  config.venues = config.venues || [];
+  config.venues.push({ name, offPeak, onPeak });
+  LS.s('bc_cfg', config);
+  closeModal('modal-venue');
+  renderConfig();
+  toast('Venue added ✓', 'ok');
+}
 
-  if (!API_URL) { toast('Saved locally (no Sheets connected)','ok'); return; }
-  try {
-    setSyncStatus('loading','Saving…');
-    const cfgPayload = Object.entries(config).map(([key,value])=>({key,value}));
-    const [cr, rr] = await Promise.all([
-      apiPost('saveConfig', cfgPayload),
-      apiPost('saveRoster', { roster })
-    ]);
-    if (!cr.ok) throw new Error(cr.error);
-    setSyncStatus('ok','Synced');
-    toast('Config saved to Sheets ✓','ok');
-  } catch(e) {
-    setSyncStatus('err','Sync failed');
-    toast('Save failed: '+e.message,'err',5000);
-  }
+function removeVenue(i) {
+  config.venues.splice(i, 1);
+  LS.s('bc_cfg', config);
+  renderConfig();
 }
 
 function addRosterPlayer() {
   const inp = document.getElementById('cfg-new-player');
   const name = inp.value.trim();
-  if (!name || roster.includes(name)) { inp.value=''; return; }
-  roster.push(name);
-  inp.value='';
-  LS.set('shc_roster', roster);
+  if (!name || (config.roster||[]).includes(name)) { inp.value = ''; return; }
+  config.roster = config.roster || [];
+  config.roster.push(name);
+  inp.value = '';
+  LS.s('bc_cfg', config);
   renderConfig();
   renderCalcPlayers();
 }
+
 function removeRosterPlayer(i) {
-  roster.splice(i,1);
-  LS.set('shc_roster', roster);
+  config.roster.splice(i, 1);
+  LS.s('bc_cfg', config);
   renderConfig();
-  renderCalcPlayers();
 }
 
-function applyConfigToCalc() {
-  if (config.court_rate_per_hr) document.getElementById('c-court-rate').value = config.court_rate_per_hr;
-  if (config.box_price) document.getElementById('c-box-price').value = config.box_price;
-  if (config.shuttles_per_box) document.getElementById('c-shuttles-per-box').value = config.shuttles_per_box;
-  if (config.shuttle_markup_pct !== undefined) document.getElementById('c-shuttle-markup').value = config.shuttle_markup_pct;
-  if (config.per_person_markup !== undefined) document.getElementById('c-markup').value = config.per_person_markup;
+function saveShuttleCfg() {
+  config.boxPrice = +document.getElementById('m-scfg-price').value || config.boxPrice;
+  config.shuttlesPerBox = +document.getElementById('m-scfg-spb').value || 12;
+  config.shuttleMarkup = +document.getElementById('m-scfg-markup').value || 5;
+  LS.s('bc_cfg', config);
+  closeModal('modal-shuttle-cfg');
+  renderConfig();
+  toast('Shuttle settings saved ✓', 'ok');
 }
 
-// ── Setup ──────────────────────────────────────────────────
-function saveApiUrl() {
-  const url = document.getElementById('api-url').value.trim();
-  if (!url) { toast('Paste your Apps Script URL first','err'); return; }
-  API_URL = url;
-  localStorage.setItem('shc_api_url', url);
-  toast('URL saved — testing connection…','ok');
-  testConnection();
+function savePayment() {
+  config.accNumber = document.getElementById('m-pay-acc').value.trim();
+  config.bankName = document.getElementById('m-pay-bank').value.trim();
+  config.accName = document.getElementById('m-pay-name').value.trim();
+  LS.s('bc_cfg', config);
+  closeModal('modal-payment');
+  renderConfig();
+  toast('Payment details saved ✓', 'ok');
 }
 
-async function testConnection() {
-  if (!API_URL) { toast('No URL set','err'); return; }
-  setSyncStatus('loading','Testing…');
+async function saveAllConfig() {
+  API_URL = document.getElementById('cfg-api-url').value.trim();
+  if (API_URL) localStorage.setItem('bc_api', API_URL);
+  LS.s('bc_cfg', config);
+
+  if (!API_URL) { toast('Saved locally ✓', 'ok'); return; }
   try {
-    const r = await apiGet('getConfig');
-    if (r.ok) {
-      config = r.config; LS.set('shc_config', config);
-      const rr = await apiGet('getRoster');
-      if (rr.ok) { roster = rr.roster; LS.set('shc_roster', roster); }
-      setSyncStatus('ok','Connected');
-      applyConfigToCalc();
-      renderCalcPlayers();
-      toast('Connected to Google Sheets ✓','ok');
-    } else {
-      throw new Error(r.error||'Unknown error');
-    }
+    setSyncStatus('loading', 'Saving…');
+    await apiPost('saveConfig', Object.entries({
+      court_venues: JSON.stringify(config.venues || []),
+      box_price: config.boxPrice, shuttles_per_box: config.shuttlesPerBox,
+      shuttle_markup_pct: config.shuttleMarkup, acc_number: config.accNumber,
+      bank_name: config.bankName, acc_name: config.accName
+    }).map(([key, value]) => ({ key, value })));
+    await apiPost('saveRoster', { roster: config.roster || [] });
+    setSyncStatus('ok', 'Synced');
+    toast('Config saved to Sheets ✓', 'ok');
   } catch(e) {
-    setSyncStatus('err','Connection failed');
-    toast('Connection failed: '+e.message,'err',6000);
+    setSyncStatus('err', 'Failed');
+    toast('Save failed: ' + e.message, 'err', 5000);
+  }
+}
+
+async function loadFromSheets() {
+  if (!API_URL) { toast('Add Web App URL first', 'err'); return; }
+  try {
+    setSyncStatus('loading', 'Loading…');
+    const [cr, rr, sr] = await Promise.all([apiGet('getConfig'), apiGet('getRoster'), apiGet('getSessions')]);
+    if (cr.ok) {
+      const c = cr.config;
+      config.boxPrice = +c.box_price || config.boxPrice;
+      config.shuttlesPerBox = +c.shuttles_per_box || 12;
+      config.shuttleMarkup = +c.shuttle_markup_pct || 5;
+      config.accNumber = c.acc_number || '';
+      config.bankName = c.bank_name || '';
+      config.accName = c.acc_name || '';
+      try { config.venues = JSON.parse(c.court_venues || '[]'); } catch(e) { config.venues = []; }
+      LS.s('bc_cfg', config);
+    }
+    if (rr.ok) { config.roster = rr.roster; LS.s('bc_cfg', config); }
+    if (sr.ok) { sessions = sr.sessions; LS.s('bc_sessions', sessions); }
+    setSyncStatus('ok', 'Synced');
+    renderConfig();
+    renderCalcPlayers();
+    toast('Loaded from Sheets ✓', 'ok');
+  } catch(e) {
+    setSyncStatus('err', 'Failed');
+    toast('Load failed: ' + e.message, 'err', 5000);
   }
 }
 
 function clearLocal() {
-  if (!confirm('Clear all local cache? Data in Google Sheets is not affected.')) return;
-  ['shc_config','shc_roster','shc_sessions'].forEach(k=>LS.del(k));
-  sessions = []; config = {}; roster = [];
-  toast('Local cache cleared','ok');
+  if (!confirm('Clear all local data?')) return;
+  ['bc_cfg','bc_sessions','bc_stock'].forEach(k => LS.d(k));
+  config = { venues: [], boxPrice: 380, shuttlesPerBox: 12, shuttleMarkup: 5, accNumber: '', bankName: '', accName: '', roster: [] };
+  sessions = [];
+  stock = { courtHrs: 0, courtSpent: 0, shuttles: 0, shuttleSpent: 0, courtPurchases: [], shuttlePurchases: [] };
+  toast('Local data cleared', 'ok');
+  renderConfig();
 }
 
-// ── Init ───────────────────────────────────────────────────
+// ── Stock modals ───────────────────────────────────────────────────
+function updateCourtPreview() {
+  const qty = +document.getElementById('m-court-qty').value || 0;
+  const hrs = +document.getElementById('m-court-hrs').value || 0;
+  const rate = +document.getElementById('m-court-rate').value || 0;
+  const total = qty * hrs * rate;
+  const totalHrs = qty * hrs;
+  document.getElementById('court-preview').textContent =
+    total > 0 ? `${totalHrs} court-hours · Total paid: ฿${total.toLocaleString()}` : 'Enter details to preview total';
+}
+
+function topUpCourt() {
+  const qty = +document.getElementById('m-court-qty').value || 0;
+  const hrs = +document.getElementById('m-court-hrs').value || 0;
+  const rate = +document.getElementById('m-court-rate').value || 0;
+  const month = document.getElementById('m-court-month').value.trim();
+  if (!qty || !hrs || !rate) { toast('Fill in all fields', 'err'); return; }
+  const totalHrs = qty * hrs;
+  const totalPaid = qty * hrs * rate;
+  stock.courtHrs = (stock.courtHrs || 0) + totalHrs;
+  stock.courtSpent = (stock.courtSpent || 0) + totalPaid;
+  stock.courtPurchases = stock.courtPurchases || [];
+  stock.courtPurchases.push({ qty, hrs, rate, totalHrs, totalPaid, month, date: new Date().toISOString() });
+  LS.s('bc_stock', stock);
+  closeModal('modal-court');
+  renderSummary();
+  toast(`Added ${totalHrs} court-hours ✓`, 'ok');
+}
+
+function updateShuttlePreview() {
+  const boxes = +document.getElementById('m-shuttle-boxes').value || 0;
+  const price = +document.getElementById('m-shuttle-price').value || 0;
+  const spb = +document.getElementById('m-shuttle-spb').value || 12;
+  const addShuttles = boxes * spb;
+  const totalPaid = boxes * price;
+  const current = stock.shuttles || 0;
+  document.getElementById('shuttle-preview').textContent =
+    price > 0 ? `฿${totalPaid.toLocaleString()} total · ${current} + ${addShuttles} = ${current + addShuttles} shuttles` : 'Enter details to preview';
+}
+
+function buyShuttles() {
+  const boxes = +document.getElementById('m-shuttle-boxes').value || 0;
+  const price = +document.getElementById('m-shuttle-price').value || 0;
+  const spb = +document.getElementById('m-shuttle-spb').value || 12;
+  if (!boxes || !price) { toast('Fill in all fields', 'err'); return; }
+  const addShuttles = boxes * spb;
+  const totalPaid = boxes * price;
+  stock.shuttles = (stock.shuttles || 0) + addShuttles;
+  stock.shuttleSpent = (stock.shuttleSpent || 0) + totalPaid;
+  stock.shuttlePurchases = stock.shuttlePurchases || [];
+  stock.shuttlePurchases.push({ boxes, price, spb, addShuttles, totalPaid, date: new Date().toISOString() });
+  // Update config box price
+  config.boxPrice = price;
+  config.shuttlesPerBox = spb;
+  LS.s('bc_cfg', config);
+  LS.s('bc_stock', stock);
+  closeModal('modal-shuttle');
+  renderSummary();
+  renderConfig();
+  toast(`Added ${addShuttles} shuttles ✓`, 'ok');
+}
+
+// ── Modals ─────────────────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  // Pre-fill shuttle cfg modal
+  if (id === 'modal-shuttle-cfg') {
+    document.getElementById('m-scfg-price').value = config.boxPrice || '';
+    document.getElementById('m-scfg-spb').value = config.shuttlesPerBox || 12;
+    document.getElementById('m-scfg-markup').value = config.shuttleMarkup || 5;
+  }
+  if (id === 'modal-payment') {
+    document.getElementById('m-pay-acc').value = config.accNumber || '';
+    document.getElementById('m-pay-bank').value = config.bankName || '';
+    document.getElementById('m-pay-name').value = config.accName || '';
+  }
+  if (id === 'modal-shuttle') {
+    document.getElementById('m-shuttle-price').value = config.boxPrice || '';
+    document.getElementById('m-shuttle-spb').value = config.shuttlesPerBox || 12;
+    updateShuttlePreview();
+  }
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModalOutside(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+// ── API ────────────────────────────────────────────────────────────
+async function apiGet(action) {
+  if (!API_URL) throw new Error('No API URL');
+  const res = await fetch(API_URL + '?action=' + action + '&_=' + Date.now());
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+async function apiPost(action, data) {
+  if (!API_URL) throw new Error('No API URL');
+  const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action, data }) });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+// ── Init ───────────────────────────────────────────────────────────
 function init() {
-  document.getElementById('c-date').value = new Date().toISOString().slice(0,10);
-  applyConfigToCalc();
   renderCalcPlayers();
+  renderVenueSelect();
   if (API_URL) {
-    setSyncStatus('ok','Connected');
-    // silently load config in background
-    apiGet('getConfig').then(r=>{
-      if (r.ok) { config=r.config; LS.set('shc_config',config); applyConfigToCalc(); }
-      return apiGet('getRoster');
-    }).then(r=>{
-      if (r && r.ok) { roster=r.roster; LS.set('shc_roster',roster); renderCalcPlayers(); }
-    }).catch(()=>{ setSyncStatus('err','Offline'); });
+    setSyncStatus('ok', 'Connected');
+    loadFromSheets().catch(() => setSyncStatus('err', 'Offline'));
   }
 }
 
