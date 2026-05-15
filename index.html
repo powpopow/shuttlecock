@@ -10,6 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <title>Badminton Calculation</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>:root {
   --bg:       #fdf8f2;
   --white:    #ffffff;
@@ -137,15 +138,16 @@ body {
   user-select: none;
 }
 .tab-item.active { color: var(--accent); }
-.tab-icon { font-size: 20px; line-height: 1; }
+.tab-icon { font-size: 22px; line-height: 1; }
 
 /* ── Cards ── */
 .card {
   background: var(--white);
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--r-lg);
   padding: 16px;
   margin-bottom: 12px;
+  box-shadow: 0 2px 12px rgba(42,31,20,0.07);
 }
 .card-label {
   font-size: 10px;
@@ -279,9 +281,9 @@ body {
   white-space: nowrap;
 }
 .btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--accent); color: #fff; width: 100%; }
+.btn-primary { background: var(--accent); color: #fff; width: 100%; border-radius: 99px; }
 .btn-primary:hover { background: var(--accent-d); }
-.btn-ghost { background: transparent; color: var(--text2); border: 1.5px solid var(--border2); }
+.btn-ghost { background: transparent; color: var(--text2); border: 1.5px solid var(--border2); border-radius: 99px; }
 .btn-light { background: var(--accent-l); color: var(--accent); font-size: 13px; padding: 9px 14px; }
 .btn-sm { font-size: 12px; padding: 8px 14px; }
 .btn-danger { background: transparent; color: var(--red); border: 1.5px solid var(--border); font-size: 12px; padding: 8px 14px; }
@@ -347,11 +349,13 @@ body {
 .stock-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
 .stock-card {
   background: var(--white);
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--r-lg);
   padding: 14px;
+  box-shadow: 0 2px 12px rgba(42,31,20,0.07);
 }
-.stock-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+.stock-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+.stock-label i { font-size: 13px; }
 .stock-big { font-family: 'Lora', serif; font-size: 28px; font-weight: 600; color: var(--text); line-height: 1; margin-bottom: 2px; }
 .stock-big.low { color: var(--red); }
 .stock-unit { font-size: 11px; color: var(--text3); margin-bottom: 10px; }
@@ -510,10 +514,11 @@ body {
 /* ── Session cards ── */
 .session-card {
   background: var(--white);
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--r-lg);
   margin-bottom: 10px;
   overflow: hidden;
+  box-shadow: 0 2px 12px rgba(42,31,20,0.07);
 }
 .session-card-head {
   padding: 14px 16px;
@@ -521,6 +526,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  border-bottom: 1px solid var(--border);
 }
 .session-card-head:hover { background: var(--surface); }
 .session-date { font-family: 'Lora', serif; font-size: 16px; font-weight: 600; flex: 1; }
@@ -644,7 +650,7 @@ body {
   <!-- Stock cards -->
   <div class="stock-row">
     <div class="stock-card">
-      <div class="stock-label">Courts</div>
+      <div class="stock-label"><i class="ti ti-building-stadium" aria-hidden="true"></i> Courts</div>
       <div class="stock-big" id="court-hrs-remaining">0</div>
       <div class="stock-unit">hrs remaining</div>
       <div class="stock-detail">
@@ -655,7 +661,7 @@ body {
       <button class="btn btn-light" style="width:100%;font-size:12px;" onclick="openModal('modal-court')">+ Top up</button>
     </div>
     <div class="stock-card">
-      <div class="stock-label">Shuttles</div>
+      <div class="stock-label"><i class="ti ti-feather" aria-hidden="true"></i> Shuttles</div>
       <div class="stock-big" id="shuttle-stock-display">0</div>
       <div class="stock-unit">shuttles left</div>
       <div class="stock-detail">
@@ -1042,10 +1048,10 @@ body {
 
 <!-- ═══ TAB BAR ══════════════════════════════════════════════ -->
 <div class="tab-bar">
-  <div class="tab-item active" id="tab-calc"     onclick="goTab('calc')"><div class="tab-icon">⊕</div><span>Calculate</span></div>
-  <div class="tab-item"        id="tab-summary"  onclick="goTab('summary')"><div class="tab-icon">◎</div><span>Summary</span></div>
-  <div class="tab-item"        id="tab-sessions" onclick="goTab('sessions')"><div class="tab-icon">≡</div><span>Sessions</span></div>
-  <div class="tab-item"        id="tab-config"   onclick="goTab('config')"><div class="tab-icon">◈</div><span>Config</span></div>
+  <div class="tab-item active" id="tab-calc"     onclick="goTab('calc')"><i class="ti ti-calculator tab-icon" aria-hidden="true"></i><span>Calculate</span></div>
+  <div class="tab-item"        id="tab-summary"  onclick="goTab('summary')"><i class="ti ti-chart-bar tab-icon" aria-hidden="true"></i><span>Summary</span></div>
+  <div class="tab-item"        id="tab-sessions" onclick="goTab('sessions')"><i class="ti ti-list-details tab-icon" aria-hidden="true"></i><span>Sessions</span></div>
+  <div class="tab-item"        id="tab-config"   onclick="goTab('config')"><i class="ti ti-settings tab-icon" aria-hidden="true"></i><span>Config</span></div>
 </div>
 
 <!-- ═══ MODALS ═══════════════════════════════════════════════ -->
