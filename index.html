@@ -709,19 +709,8 @@ body {
 
     <!-- Venue: single-step card picker -->
     <div style="margin-bottom:4px;">
-      <div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">Venue &amp; rate</div>
+      <div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">Venue</div>
       <div class="venue-picker" id="venue-picker"></div>
-      <div id="venue-rate-tabs" style="display:none;">
-        <div class="venue-rate-tabs">
-          <div class="rate-tab active" id="rt-offpeak" onclick="setRateType('offPeak')">Off-peak</div>
-          <div class="rate-tab" id="rt-onpeak" onclick="setRateType('onPeak')">On-peak</div>
-          <div class="rate-tab" id="rt-custom" onclick="setRateType('custom')">Custom</div>
-        </div>
-        <div class="rate-custom-row" id="custom-rate-row" style="display:none;">
-          <label>฿/hr</label>
-          <input type="number" id="c-custom-rate" placeholder="e.g. 70">
-        </div>
-      </div>
       <div id="no-venues-hint" style="font-size:12px;color:var(--text3);margin-bottom:8px;">No venues yet — add one in Config.</div>
     </div>
 
@@ -729,7 +718,7 @@ body {
     <div class="g2">
       <div class="field">
         <label>Shuttles used</label>
-        <input type="number" id="c-shuttles" value="0" min="0">
+        <input type="number" id="c-shuttles" placeholder="0" min="0">
       </div>
       <div class="field">
         <label>Charge price (฿/shuttle)</label>
@@ -773,7 +762,7 @@ body {
     </div>
     <div class="field">
       <label>Extra shuttles</label>
-      <input type="number" id="c-extra-shuttles" value="0" min="0" style="max-width:120px;">
+      <input type="number" id="c-extra-shuttles" placeholder="0" min="0" style="max-width:120px;">
     </div>
     <div class="field">
       <label>Who's staying?</label>
@@ -1016,17 +1005,36 @@ body {
   </div>
 </div>
 
-<!-- Shuttle buy — NO charge price here, just buy cost -->
+<!-- Shuttle buy — box or loose -->
 <div class="modal-overlay" id="modal-shuttle" onclick="closeModalOutside(event,'modal-shuttle')">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">Buy shuttle box</div>
+    <div class="modal-title">Buy shuttles</div>
     <div class="field"><label>Purchase date</label><input type="date" id="shuttle-date"></div>
-    <div class="g2">
-      <div class="field"><label>Boxes purchased</label><input type="number" id="shuttle-boxes" value="1" min="1"></div>
-      <div class="field"><label>Shuttles per box</label><input type="number" id="shuttle-per-box-inp" value="12"></div>
+
+    <!-- Mode toggle -->
+    <div class="venue-rate-tabs" style="margin-bottom:14px;">
+      <div class="rate-tab active" id="shuttle-mode-box"   onclick="switchShuttleMode('box')">By box</div>
+      <div class="rate-tab"        id="shuttle-mode-loose" onclick="switchShuttleMode('loose')">Loose shuttles</div>
     </div>
-    <div class="field"><label>Price per box (฿)</label><input type="number" id="shuttle-box-price-inp" placeholder="e.g. 380" oninput="calcShuttleBuyTotal()"></div>
+
+    <!-- Box fields -->
+    <div id="shuttle-box-fields">
+      <div class="g2">
+        <div class="field"><label>Boxes purchased</label><input type="number" id="shuttle-boxes" placeholder="1" min="1" oninput="calcShuttleBuyTotal()"></div>
+        <div class="field"><label>Shuttles per box</label><input type="number" id="shuttle-per-box-inp" placeholder="12" oninput="calcShuttleBuyTotal()"></div>
+      </div>
+      <div class="field"><label>Price per box (฿)</label><input type="number" id="shuttle-box-price-inp" placeholder="e.g. 380" oninput="calcShuttleBuyTotal()"></div>
+    </div>
+
+    <!-- Loose fields -->
+    <div id="shuttle-loose-fields" style="display:none;">
+      <div class="g2">
+        <div class="field"><label>Qty (shuttles)</label><input type="number" id="shuttle-loose-qty" placeholder="e.g. 3" min="1" oninput="calcShuttleBuyTotal()"></div>
+        <div class="field"><label>Total paid (฿)</label><input type="number" id="shuttle-loose-paid" placeholder="e.g. 250" oninput="calcShuttleBuyTotal()"></div>
+      </div>
+    </div>
+
     <div class="info-box" id="shuttle-buy-preview">Total paid: —</div>
     <div style="font-size:11px;color:var(--text3);margin-bottom:12px;">
       Charge price to players is set separately in <strong>Config</strong>.
@@ -1041,11 +1049,9 @@ body {
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">Add venue</div>
-    <div class="field"><label>Venue name</label><input type="text" id="venue-name-inp" placeholder="e.g. NLG"></div>
-    <div class="g2">
-      <div class="field"><label>On-peak (฿/hr)</label><input type="number" id="venue-onpeak" placeholder="e.g. 80"></div>
-      <div class="field"><label>Off-peak (฿/hr)</label><input type="number" id="venue-offpeak" placeholder="e.g. 60"></div>
-    </div>
+    <div class="field"><label>Venue name</label><input type="text" id="venue-name-inp" placeholder="e.g. NLG Off-peak"></div>
+    <div class="field"><label>Rate (฿/hr)</label><input type="number" id="venue-rate-inp" placeholder="e.g. 60"></div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;">Tip: add the same venue twice with different names for on/off peak, e.g. "NLG Off" and "NLG On".</div>
     <button class="btn btn-primary" onclick="addVenue()">Add venue</button>
     <button class="btn btn-ghost" style="width:100%;margin-top:8px;" onclick="closeModal('modal-add-venue')">Cancel</button>
   </div>
@@ -1157,14 +1163,12 @@ function weightedAvgBuyPrice() {
 
 // ── Venue picker ─────────────────────────────────────────────
 function renderVenuePicker() {
-  const el       = document.getElementById('venue-picker');
-  const noHint   = document.getElementById('no-venues-hint');
-  const rateTabs = document.getElementById('venue-rate-tabs');
+  const el     = document.getElementById('venue-picker');
+  const noHint = document.getElementById('no-venues-hint');
 
   if (!venues.length) {
     el.innerHTML = '';
     noHint.style.display = 'block';
-    rateTabs.style.display = 'none';
     return;
   }
   noHint.style.display = 'none';
@@ -1174,11 +1178,9 @@ function renderVenuePicker() {
     return `
       <div class="venue-opt${sel ? ' selected' : ''}" onclick="selectVenue(${i})">
         <div class="venue-opt-name">${v.name}</div>
-        <div class="venue-opt-rate">Off ฿${v.offPeak} · On ฿${v.onPeak}/hr</div>
+        <div class="venue-opt-rate">฿${v.rate}/hr</div>
       </div>`;
   }).join('');
-
-  rateTabs.style.display = selectedVenue ? 'block' : 'none';
 }
 
 function selectVenue(i) {
@@ -1186,18 +1188,9 @@ function selectVenue(i) {
   renderVenuePicker();
 }
 
-function setRateType(type) {
-  selectedRateType = type;
-  document.getElementById('rt-offpeak').classList.toggle('active', type === 'offPeak');
-  document.getElementById('rt-onpeak').classList.toggle('active', type === 'onPeak');
-  document.getElementById('rt-custom').classList.toggle('active', type === 'custom');
-  document.getElementById('custom-rate-row').style.display = type === 'custom' ? 'flex' : 'none';
-}
-
 function getCourtRate() {
-  if (selectedRateType === 'custom') return +document.getElementById('c-custom-rate').value || 0;
   if (!selectedVenue) return 0;
-  return selectedRateType === 'onPeak' ? +selectedVenue.onPeak : +selectedVenue.offPeak;
+  return +selectedVenue.rate || 0;
 }
 
 // ── Apply config to calc page ────────────────────────────────
@@ -1220,7 +1213,10 @@ function parseLine() {
   if (dm) {
     const mo = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
     const y  = dm[3] ? +dm[3] : new Date().getFullYear();
-    date = new Date(y, mo[dm[2].toLowerCase()], +dm[1]).toISOString().slice(0,10);
+    const d  = +dm[1];
+    const m  = mo[dm[2].toLowerCase()];
+    // Use local date string to avoid UTC rollback (timezone bug)
+    date = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
   }
 
   const vm = header.match(/@(\w+)/);
@@ -1762,7 +1758,7 @@ function renderVenuesList() {
         <div class="venue-item">
           <div>
             <div class="venue-name">${v.name}</div>
-            <div class="venue-rates">On-peak ฿${v.onPeak}/hr · Off-peak ฿${v.offPeak}/hr</div>
+            <div class="venue-rates">฿${v.rate}/hr</div>
           </div>
           <button style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;" onclick="removeVenue(${i})">×</button>
         </div>`).join('')
@@ -1782,15 +1778,13 @@ function renderRosterList() {
 }
 
 function addVenue() {
-  const name    = document.getElementById('venue-name-inp').value.trim();
-  const onPeak  = +document.getElementById('venue-onpeak').value  || 0;
-  const offPeak = +document.getElementById('venue-offpeak').value || 0;
+  const name = document.getElementById('venue-name-inp').value.trim();
+  const rate = +document.getElementById('venue-rate-inp').value || 0;
   if (!name) { toast('Enter venue name', 'err'); return; }
-  venues.push({ name, onPeak, offPeak, notes: '' });
+  venues.push({ name, rate });
   LS.set('bmc_venues', venues);
   document.getElementById('venue-name-inp').value = '';
-  document.getElementById('venue-onpeak').value   = '';
-  document.getElementById('venue-offpeak').value  = '';
+  document.getElementById('venue-rate-inp').value  = '';
   closeModal('modal-add-venue');
   renderVenuesList();
   renderVenuePicker();
@@ -1887,29 +1881,65 @@ async function topUpCourt() {
 }
 
 // ── Shuttle buy modal ────────────────────────────────────────
-function calcShuttleBuyTotal() {
-  const boxes      = +document.getElementById('shuttle-boxes').value           || 0;
-  const price      = +document.getElementById('shuttle-box-price-inp').value   || 0;
-  const perBox     = +document.getElementById('shuttle-per-box-inp').value      || 12;
-  const total      = boxes * price;
-  const shuttlesAdded = boxes * perBox;
-  const buyPerPc   = total && shuttlesAdded ? (total / shuttlesAdded).toFixed(2) : '—';
+function shuttleBuyMode() {
+  return document.getElementById('shuttle-mode-box').classList.contains('active') ? 'box' : 'loose';
+}
 
-  document.getElementById('shuttle-buy-preview').textContent = total > 0
-    ? `${boxes} box${boxes>1?'es':''} × ฿${price} = ฿${total.toLocaleString()} · adds ${shuttlesAdded} shuttles (฿${buyPerPc}/pc buy cost)`
-    : 'Total paid: —';
+function switchShuttleMode(mode) {
+  document.getElementById('shuttle-mode-box').classList.toggle('active', mode === 'box');
+  document.getElementById('shuttle-mode-loose').classList.toggle('active', mode === 'loose');
+  document.getElementById('shuttle-box-fields').style.display   = mode === 'box'   ? 'block' : 'none';
+  document.getElementById('shuttle-loose-fields').style.display = mode === 'loose' ? 'block' : 'none';
+  calcShuttleBuyTotal();
+}
+
+function calcShuttleBuyTotal() {
+  const mode = shuttleBuyMode();
+  let preview = 'Total paid: —';
+
+  if (mode === 'box') {
+    const boxes  = +document.getElementById('shuttle-boxes').value         || 0;
+    const price  = +document.getElementById('shuttle-box-price-inp').value || 0;
+    const perBox = +document.getElementById('shuttle-per-box-inp').value   || 12;
+    const total  = boxes * price;
+    const count  = boxes * perBox;
+    const buyPc  = count ? (total / count).toFixed(2) : '—';
+    if (total > 0) preview = `${boxes} box${boxes>1?'es':''} × ฿${price} = ฿${total.toLocaleString()} · adds ${count} shuttles (฿${buyPc}/pc)`;
+  } else {
+    const qty   = +document.getElementById('shuttle-loose-qty').value   || 0;
+    const total = +document.getElementById('shuttle-loose-paid').value  || 0;
+    const buyPc = qty ? (total / qty).toFixed(2) : '—';
+    if (qty > 0) preview = `${qty} shuttles · ฿${total} paid (฿${buyPc}/pc)`;
+  }
+
+  document.getElementById('shuttle-buy-preview').textContent = preview;
 }
 
 async function buyShuttleBox() {
-  const boxes  = +document.getElementById('shuttle-boxes').value          || 0;
-  const price  = +document.getElementById('shuttle-box-price-inp').value  || 0;
-  const perBox = +document.getElementById('shuttle-per-box-inp').value     || 12;
-  const date   = document.getElementById('shuttle-date').value || new Date().toISOString().slice(0,10);
-  if (!boxes || !price) { toast('Fill all fields', 'err'); return; }
+  const mode = shuttleBuyMode();
+  const date = document.getElementById('shuttle-date').value || new Date().toISOString().slice(0,10);
+  let shuttlesAdded, totalPaid, pricePerBox, boxes, perBox;
 
-  const shuttlesAdded = boxes * perBox;
-  const totalPaid     = boxes * price;
-  const log = { date, boxes, shuttlesAdded, pricePerBox: price, totalPaid };
+  if (mode === 'box') {
+    boxes  = +document.getElementById('shuttle-boxes').value         || 0;
+    const price  = +document.getElementById('shuttle-box-price-inp').value || 0;
+    perBox = +document.getElementById('shuttle-per-box-inp').value   || 12;
+    if (!boxes || !price) { toast('Fill all fields', 'err'); return; }
+    shuttlesAdded = boxes * perBox;
+    totalPaid     = boxes * price;
+    pricePerBox   = price;
+  } else {
+    const qty   = +document.getElementById('shuttle-loose-qty').value  || 0;
+    const total = +document.getElementById('shuttle-loose-paid').value || 0;
+    if (!qty || !total) { toast('Fill all fields', 'err'); return; }
+    shuttlesAdded = qty;
+    totalPaid     = total;
+    pricePerBox   = total; // treat as single "box" of qty shuttles
+    boxes         = 1;
+    perBox        = qty;
+  }
+
+  const log = { date, boxes, shuttlesAdded, pricePerBox, totalPaid, mode };
   shuttleLogs.push(log);
   LS.set('bmc_shuttle_logs', shuttleLogs);
   renderStockCards();
@@ -1932,7 +1962,7 @@ function openModal(id) {
   if (id === 'modal-shuttle') {
     document.getElementById('shuttle-date').value = today;
     document.getElementById('shuttle-per-box-inp').value = config.shuttles_per_box || 12;
-    calcShuttleBuyTotal();
+    switchShuttleMode('box'); // always reset to box mode
   }
 }
 
