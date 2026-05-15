@@ -682,7 +682,6 @@ body {
       <input type="text" id="new-player-inp" placeholder="Add player…" style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:10px 12px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;" onkeydown="if(event.key==='Enter')addCalcPlayer()">
       <button class="btn btn-light btn-sm" onclick="addCalcPlayer()">+ Add</button>
     </div>
-    <div class="roster-quick" id="roster-quick"></div>
 
     <!-- Extra hour -->
     <div class="divider">Extra hour (optional)</div>
@@ -879,15 +878,6 @@ body {
     </div>
 
     <div class="cfg-section">
-      <div class="cfg-section-head"><i class="ti ti-users" aria-hidden="true"></i><div class="cfg-section-title">Player roster</div></div>
-      <div id="roster-list"></div>
-      <div style="padding:10px 13px;display:flex;gap:8px;">
-        <input type="text" id="cfg-new-player" placeholder="Player name…" style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;" onkeydown="if(event.key==='Enter')addRosterPlayer()">
-        <button class="btn btn-light btn-sm" onclick="addRosterPlayer()">+ Add</button>
-      </div>
-    </div>
-
-    <div class="cfg-section">
       <div class="cfg-section-head"><i class="ti ti-credit-card" aria-hidden="true"></i><div class="cfg-section-title">Payment details</div></div>
       <div class="cfg-item">
         <div class="cfg-lbl">Account number</div>
@@ -1056,10 +1046,10 @@ body {
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">Payment details</div>
-    <div class="field"><label>Account number</label><input type="text" id="cfg-bank-account" placeholder="e.g. 1458483864"></div>
+    <div class="field"><label>Account number</label><input type="text" id="cfg-bank-account" placeholder="e.g. 000-0-00000-0"></div>
     <div class="g2">
       <div class="field"><label>Bank name</label><input type="text" id="cfg-bank-name" placeholder="e.g. Kbank"></div>
-      <div class="field"><label>Account holder</label><input type="text" id="cfg-account-holder" placeholder="e.g. Chanavi"></div>
+      <div class="field"><label>Account holder</label><input type="text" id="cfg-account-holder" placeholder="e.g. Your name"></div>
     </div>
     <button class="btn btn-primary" onclick="saveCfgPayment()">Save</button>
     <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeModal('modal-cfg-payment')">Cancel</button>
@@ -1158,7 +1148,6 @@ const LS = {
 let API_URL     = localStorage.getItem('bmc_api') || '';
 let config      = LS.get('bmc_config')       || {};
 let venues      = LS.get('bmc_venues')       || [];
-let roster      = LS.get('bmc_roster')       || [];
 let sessions    = LS.get('bmc_sessions')     || [];
 let courtLogs   = LS.get('bmc_court_logs')   || [];
 let shuttleLogs = LS.get('bmc_shuttle_logs') || [];
@@ -1428,11 +1417,6 @@ function renderCalcPlayers() {
           ${p.extraStay?'✓ ':''}${p.name}
         </button>`).join('')
     : '<span style="font-size:12px;color:var(--text3);">Add players first.</span>';
-
-  const avail = roster.filter(r => !calcPlayers.find(p=>p.name===r));
-  document.getElementById('roster-quick').innerHTML = avail
-    .map(r => `<div class="roster-chip" onclick="quickAdd('${r.replace(/'/g,"\\'")}')">+ ${r}</div>`)
-    .join('');
 }
 function addCalcPlayer() {
   const inp  = document.getElementById('new-player-inp');
@@ -1760,13 +1744,7 @@ function renderConfig() {
     : '<div style="padding:10px 13px;font-size:12px;color:var(--text3);">No venues yet.</div>';
 
   const rl = document.getElementById('roster-list');
-  rl.innerHTML = roster.length
-    ? roster.map((r,i) => `
-        <div class="cfg-item">
-          <div style="display:flex;align-items:center;gap:8px;">${av(r)}<div class="cfg-lbl">${r}</div></div>
-          <button style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;" onclick="removeRosterPlayer(${i})">×</button>
-        </div>`).join('')
-    : '<div style="padding:6px 13px;font-size:12px;color:var(--text3);">No players yet.</div>';
+  if (rl) rl.innerHTML = '';
 }
 
 function openEditVenue(i) {
@@ -1812,23 +1790,6 @@ function addVenue() {
   renderConfig();
   renderVenuePicker();
   toast('Venue added ✓','ok');
-}
-
-function addRosterPlayer() {
-  const inp  = document.getElementById('cfg-new-player');
-  const name = inp.value.trim();
-  if (!name || roster.includes(name)) { inp.value=''; return; }
-  roster.push(name);
-  LS.set('bmc_roster', roster);
-  inp.value = '';
-  renderConfig();
-  renderCalcPlayers();
-}
-function removeRosterPlayer(i) {
-  roster.splice(i,1);
-  LS.set('bmc_roster', roster);
-  renderConfig();
-  renderCalcPlayers();
 }
 
 // Config modals
@@ -2160,7 +2121,6 @@ async function testConnection() {
     if (!r.ok) throw new Error(r.error);
     if (r.config)      { config=r.config;          LS.set('bmc_config',config); }
     if (r.venues)      { venues=r.venues;           LS.set('bmc_venues',venues); }
-    if (r.roster)      { roster=r.roster;           LS.set('bmc_roster',roster); }
     if (r.sessions)    { sessions=r.sessions;       LS.set('bmc_sessions',sessions); }
     if (r.courtLogs)   { courtLogs=r.courtLogs;     LS.set('bmc_court_logs',courtLogs); }
     if (r.shuttleLogs) { shuttleLogs=r.shuttleLogs; LS.set('bmc_shuttle_logs',shuttleLogs); }
@@ -2177,9 +2137,9 @@ async function testConnection() {
 
 function clearLocal() {
   if (!confirm('Clear all local data?')) return;
-  ['bmc_config','bmc_venues','bmc_roster','bmc_sessions','bmc_court_logs','bmc_shuttle_logs','bmc_budget_logs']
+  ['bmc_config','bmc_venues','bmc_sessions','bmc_court_logs','bmc_shuttle_logs','bmc_budget_logs']
     .forEach(k=>LS.del(k));
-  config={}; venues=[]; roster=[]; sessions=[]; courtLogs=[]; shuttleLogs=[]; budgetLogs=[];
+  config={}; venues=[]; sessions=[]; courtLogs=[]; shuttleLogs=[]; budgetLogs=[];
   selectedVenue=null;
   API_URL='';
   localStorage.removeItem('bmc_api');
