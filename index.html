@@ -1034,7 +1034,17 @@ body {
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">Shuttle pricing</div>
-    <div class="field"><label>Charge price per shuttle (฿)</label><input type="number" id="cfg-shuttle-charge" placeholder="e.g. 84"><div class="field-hint">What you bill players per shuttle.</div></div>
+    <div class="g2">
+      <div class="field"><label>Box price (฿)</label><input type="number" id="cfg-box-price" placeholder="e.g. 950" oninput="calcCfgShuttlePrice()"></div>
+      <div class="field"><label>Shuttles per box</label><input type="number" id="cfg-shuttles-per-box" placeholder="12" oninput="calcCfgShuttlePrice()"></div>
+    </div>
+    <div class="field"><label>Markup (%)</label><input type="number" id="cfg-shuttle-markup" placeholder="5" min="0" oninput="calcCfgShuttlePrice()"></div>
+    <div class="info-box" id="cfg-shuttle-preview">Enter box price to see suggested charge price.</div>
+    <div class="field">
+      <label>Charge price per shuttle (฿) <span style="color:var(--accent);font-size:10px;">you decide</span></label>
+      <input type="number" id="cfg-shuttle-charge" placeholder="e.g. 84">
+      <div class="field-hint">Auto-filled from calculation above. Edit to override.</div>
+    </div>
     <div class="field"><label>Default markup per person (฿)</label><input type="number" id="cfg-default-markup" placeholder="e.g. 10"><div class="field-hint">Pre-filled on the results page.</div></div>
     <button class="btn btn-primary" onclick="saveCfgShuttle()">Save</button>
     <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeModal('modal-cfg-shuttle')">Cancel</button>
@@ -1794,8 +1804,11 @@ function addVenue() {
 
 // Config modals
 function saveCfgShuttle() {
-  config.shuttle_charge_price = +document.getElementById('cfg-shuttle-charge').value || 0;
-  config.default_markup       = +document.getElementById('cfg-default-markup').value || 10;
+  config.box_price            = +document.getElementById('cfg-box-price').value        || 0;
+  config.shuttles_per_box     = +document.getElementById('cfg-shuttles-per-box').value || 12;
+  config.shuttle_markup_pct   = +document.getElementById('cfg-shuttle-markup').value   || 5;
+  config.shuttle_charge_price = +document.getElementById('cfg-shuttle-charge').value   || 0;
+  config.default_markup       = +document.getElementById('cfg-default-markup').value   || 10;
   LS.set('bmc_config', config);
   closeModal('modal-cfg-shuttle');
   applyConfigToCalc();
@@ -1822,10 +1835,34 @@ function saveCfgSheets() {
 }
 
 // Pre-fill config modals
+function calcCfgShuttlePrice() {
+  const box    = +document.getElementById('cfg-box-price').value    || 0;
+  const perBox = +document.getElementById('cfg-shuttles-per-box').value || 12;
+  const markup = +document.getElementById('cfg-shuttle-markup').value   || 0;
+  const preview = document.getElementById('cfg-shuttle-preview');
+  if (box > 0 && perBox > 0) {
+    const raw  = box / perBox;
+    const with_markup = raw * (1 + markup / 100);
+    const suggested = Math.ceil(with_markup);
+    preview.textContent = `฿${box} ÷ ${perBox} × ${(1+markup/100).toFixed(2)} = ฿${with_markup.toFixed(2)} → suggested ฿${suggested}/shuttle`;
+    // Auto-fill charge price only if user hasn't manually edited it
+    const chargeInp = document.getElementById('cfg-shuttle-charge');
+    if (!chargeInp.dataset.manual) chargeInp.value = suggested;
+  } else {
+    preview.textContent = 'Enter box price to see suggested charge price.';
+  }
+}
+
 function openCfgModal(id) {
   if (id === 'modal-cfg-shuttle') {
-    document.getElementById('cfg-shuttle-charge').value  = config.shuttle_charge_price || '';
+    document.getElementById('cfg-box-price').value       = config.box_price || '';
+    document.getElementById('cfg-shuttles-per-box').value = config.shuttles_per_box || 12;
+    document.getElementById('cfg-shuttle-markup').value  = config.shuttle_markup_pct || 5;
+    const chargeInp = document.getElementById('cfg-shuttle-charge');
+    chargeInp.value = config.shuttle_charge_price || '';
+    delete chargeInp.dataset.manual;
     document.getElementById('cfg-default-markup').value  = config.default_markup || 10;
+    calcCfgShuttlePrice();
   }
   if (id === 'modal-cfg-payment') {
     document.getElementById('cfg-bank-account').value   = config.bank_account || '';
@@ -2153,6 +2190,10 @@ function clearLocal() {
 
 // ── Init ──────────────────────────────────────────────────────
 function init() {
+  // Track manual edits to charge price field
+  document.addEventListener('input', e => {
+    if (e.target.id === 'cfg-shuttle-charge') e.target.dataset.manual = '1';
+  });
   // Init tab dots — hide all except active
   TABS.forEach(t => {
     const tabEl = document.getElementById('tab-'+t);
