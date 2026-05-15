@@ -891,6 +891,60 @@ body {
   <div class="card"><div class="card-label">Shuttle purchase log</div><div id="shuttle-log-list"></div></div>
 </div>
 
+<!-- Edit court log modal -->
+<div class="modal-overlay" id="modal-edit-court" onclick="closeModalOutside(event,'modal-edit-court')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit court purchase</div>
+    <input type="hidden" id="edit-court-idx">
+    <div class="field"><label>Purchase date</label><input type="date" id="edit-court-date"></div>
+    <div class="g2">
+      <div class="field"><label>Courts purchased</label><input type="number" id="edit-court-num" min="1"></div>
+      <div class="field"><label>Hours per court</label><input type="number" id="edit-court-hrs" min="0.5" step="0.5"></div>
+    </div>
+    <div class="field"><label>Rate per hour (฿)</label><input type="number" id="edit-court-rate" oninput="calcEditCourtTotal()"></div>
+    <div class="info-box" id="edit-court-preview">Total paid: —</div>
+    <button class="btn btn-primary" onclick="saveEditCourt()">Save changes</button>
+    <button class="btn btn-danger" style="width:100%;margin-top:8px;" onclick="deleteCourtLog()">Delete this entry</button>
+    <button class="btn btn-ghost" style="width:100%;margin-top:8px;" onclick="closeModal('modal-edit-court')">Cancel</button>
+  </div>
+</div>
+
+<!-- Edit shuttle log modal -->
+<div class="modal-overlay" id="modal-edit-shuttle" onclick="closeModalOutside(event,'modal-edit-shuttle')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit shuttle purchase</div>
+    <input type="hidden" id="edit-shuttle-idx">
+    <div class="field"><label>Purchase date</label><input type="date" id="edit-shuttle-date"></div>
+
+    <!-- Mode toggle -->
+    <div class="venue-rate-tabs" style="margin-bottom:14px;">
+      <div class="rate-tab active" id="edit-shuttle-mode-box"   onclick="switchEditShuttleMode('box')">By box</div>
+      <div class="rate-tab"        id="edit-shuttle-mode-loose" onclick="switchEditShuttleMode('loose')">Loose shuttles</div>
+    </div>
+
+    <div id="edit-shuttle-box-fields">
+      <div class="g2">
+        <div class="field"><label>Boxes</label><input type="number" id="edit-shuttle-boxes" min="1" oninput="calcEditShuttleTotal()"></div>
+        <div class="field"><label>Shuttles per box</label><input type="number" id="edit-shuttle-perbox" oninput="calcEditShuttleTotal()"></div>
+      </div>
+      <div class="field"><label>Price per box (฿)</label><input type="number" id="edit-shuttle-price" oninput="calcEditShuttleTotal()"></div>
+    </div>
+    <div id="edit-shuttle-loose-fields" style="display:none;">
+      <div class="g2">
+        <div class="field"><label>Qty (shuttles)</label><input type="number" id="edit-shuttle-loose-qty" min="1" oninput="calcEditShuttleTotal()"></div>
+        <div class="field"><label>Total paid (฿)</label><input type="number" id="edit-shuttle-loose-paid" oninput="calcEditShuttleTotal()"></div>
+      </div>
+    </div>
+
+    <div class="info-box" id="edit-shuttle-preview">Total paid: —</div>
+    <button class="btn btn-primary" onclick="saveEditShuttle()">Save changes</button>
+    <button class="btn btn-danger" style="width:100%;margin-top:8px;" onclick="deleteShuttleLog()">Delete this entry</button>
+    <button class="btn btn-ghost" style="width:100%;margin-top:8px;" onclick="closeModal('modal-edit-shuttle')">Cancel</button>
+  </div>
+</div>
+
 <!-- ═══ PAGE: SESSIONS ═══════════════════════════════════════ -->
 <div class="page" id="page-sessions">
   <div id="sessions-list"></div>
@@ -1631,26 +1685,32 @@ function renderSummary() {
   // Court log
   const cl = document.getElementById('court-log-list');
   cl.innerHTML = courtLogs.length
-    ? [...courtLogs].reverse().map(l => `
+    ? [...courtLogs].map((l, i) => `
         <div class="config-item">
           <div>
             <div class="config-lbl">${l.date ? new Date(l.date+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—'}</div>
             <div style="font-size:11px;color:var(--text3);">${l.courts}cts × ${l.hoursPerCourt}hr @ ฿${l.ratePerHour}/hr = ${l.courtHoursAdded}hr</div>
           </div>
-          <div class="config-val" style="color:var(--accent);">${fmt(l.totalPaid)}</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="config-val" style="color:var(--accent);">${fmt(l.totalPaid)}</div>
+            <button onclick="openEditCourt(${i})" style="background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;">Edit</button>
+          </div>
         </div>`).join('')
     : '<div style="font-size:12px;color:var(--text3);padding:8px 0;">No court purchases yet.</div>';
 
   // Shuttle log
   const sl = document.getElementById('shuttle-log-list');
   sl.innerHTML = shuttleLogs.length
-    ? [...shuttleLogs].reverse().map(l => `
+    ? [...shuttleLogs].map((l, i) => `
         <div class="config-item">
           <div>
             <div class="config-lbl">${l.date ? new Date(l.date+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—'}</div>
-            <div style="font-size:11px;color:var(--text3);">${l.boxes} box${l.boxes>1?'es':''} × ฿${l.pricePerBox} = ${l.shuttlesAdded} shuttles (฿${(l.totalPaid/l.shuttlesAdded).toFixed(2)}/pc)</div>
+            <div style="font-size:11px;color:var(--text3);">${l.shuttlesAdded} shuttles · ฿${(l.totalPaid/l.shuttlesAdded).toFixed(2)}/pc buy cost</div>
           </div>
-          <div class="config-val" style="color:var(--accent);">${fmt(l.totalPaid)}</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="config-val" style="color:var(--accent);">${fmt(l.totalPaid)}</div>
+            <button onclick="openEditShuttle(${i})" style="background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;">Edit</button>
+          </div>
         </div>`).join('')
     : '<div style="font-size:12px;color:var(--text3);padding:8px 0;">No shuttle purchases yet.</div>';
 }
@@ -1955,6 +2015,135 @@ async function buyShuttleBox() {
     try { await apiPost('buyShuttleBox', { ...log, shuttlesPerBox: perBox }); }
     catch(e) { toast('Sheets sync failed', 'err'); }
   }
+}
+
+// ── Edit/delete court log ────────────────────────────────────
+function openEditCourt(i) {
+  const l = courtLogs[i];
+  document.getElementById('edit-court-idx').value  = i;
+  document.getElementById('edit-court-date').value = l.date || '';
+  document.getElementById('edit-court-num').value  = l.courts;
+  document.getElementById('edit-court-hrs').value  = l.hoursPerCourt;
+  document.getElementById('edit-court-rate').value = l.ratePerHour;
+  calcEditCourtTotal();
+  document.getElementById('modal-edit-court').classList.add('open');
+}
+
+function calcEditCourtTotal() {
+  const courts = +document.getElementById('edit-court-num').value  || 0;
+  const hrs    = +document.getElementById('edit-court-hrs').value  || 0;
+  const rate   = +document.getElementById('edit-court-rate').value || 0;
+  const total  = courts * hrs * rate;
+  document.getElementById('edit-court-preview').textContent = total > 0
+    ? `${courts} courts × ${hrs}hr × ฿${rate}/hr = ฿${total.toLocaleString()} total paid`
+    : 'Total paid: —';
+}
+
+function saveEditCourt() {
+  const i      = +document.getElementById('edit-court-idx').value;
+  const courts = +document.getElementById('edit-court-num').value  || 0;
+  const hrs    = +document.getElementById('edit-court-hrs').value  || 0;
+  const rate   = +document.getElementById('edit-court-rate').value || 0;
+  const date   = document.getElementById('edit-court-date').value;
+  if (!courts || !hrs || !rate) { toast('Fill all fields', 'err'); return; }
+  courtLogs[i] = { date, courts, hoursPerCourt: hrs, ratePerHour: rate, totalPaid: courts*hrs*rate, courtHoursAdded: courts*hrs };
+  LS.set('bmc_court_logs', courtLogs);
+  closeModal('modal-edit-court');
+  renderSummary();
+  renderStockCards();
+  toast('Court log updated ✓', 'ok');
+}
+
+function deleteCourtLog() {
+  const i = +document.getElementById('edit-court-idx').value;
+  if (!confirm('Delete this court purchase?')) return;
+  courtLogs.splice(i, 1);
+  LS.set('bmc_court_logs', courtLogs);
+  closeModal('modal-edit-court');
+  renderSummary();
+  renderStockCards();
+  toast('Deleted', 'ok');
+}
+
+// ── Edit/delete shuttle log ──────────────────────────────────
+function switchEditShuttleMode(mode) {
+  document.getElementById('edit-shuttle-mode-box').classList.toggle('active', mode === 'box');
+  document.getElementById('edit-shuttle-mode-loose').classList.toggle('active', mode === 'loose');
+  document.getElementById('edit-shuttle-box-fields').style.display   = mode === 'box'   ? 'block' : 'none';
+  document.getElementById('edit-shuttle-loose-fields').style.display = mode === 'loose' ? 'block' : 'none';
+  calcEditShuttleTotal();
+}
+
+function openEditShuttle(i) {
+  const l = shuttleLogs[i];
+  document.getElementById('edit-shuttle-idx').value  = i;
+  document.getElementById('edit-shuttle-date').value = l.date || '';
+  if (l.mode === 'loose') {
+    switchEditShuttleMode('loose');
+    document.getElementById('edit-shuttle-loose-qty').value  = l.shuttlesAdded;
+    document.getElementById('edit-shuttle-loose-paid').value = l.totalPaid;
+  } else {
+    switchEditShuttleMode('box');
+    document.getElementById('edit-shuttle-boxes').value  = l.boxes || 1;
+    document.getElementById('edit-shuttle-perbox').value = l.shuttlesAdded / (l.boxes || 1);
+    document.getElementById('edit-shuttle-price').value  = l.pricePerBox;
+  }
+  calcEditShuttleTotal();
+  document.getElementById('modal-edit-shuttle').classList.add('open');
+}
+
+function calcEditShuttleTotal() {
+  const mode = document.getElementById('edit-shuttle-mode-box').classList.contains('active') ? 'box' : 'loose';
+  let preview = 'Total paid: —';
+  if (mode === 'box') {
+    const boxes  = +document.getElementById('edit-shuttle-boxes').value  || 0;
+    const price  = +document.getElementById('edit-shuttle-price').value  || 0;
+    const perBox = +document.getElementById('edit-shuttle-perbox').value || 12;
+    const total  = boxes * price;
+    const count  = boxes * perBox;
+    if (total > 0) preview = `${boxes} box${boxes>1?'es':''} × ฿${price} = ฿${total.toLocaleString()} · ${count} shuttles`;
+  } else {
+    const qty   = +document.getElementById('edit-shuttle-loose-qty').value  || 0;
+    const total = +document.getElementById('edit-shuttle-loose-paid').value || 0;
+    if (qty > 0) preview = `${qty} shuttles · ฿${total} paid`;
+  }
+  document.getElementById('edit-shuttle-preview').textContent = preview;
+}
+
+function saveEditShuttle() {
+  const i    = +document.getElementById('edit-shuttle-idx').value;
+  const date = document.getElementById('edit-shuttle-date').value;
+  const mode = document.getElementById('edit-shuttle-mode-box').classList.contains('active') ? 'box' : 'loose';
+  let log;
+  if (mode === 'box') {
+    const boxes  = +document.getElementById('edit-shuttle-boxes').value  || 0;
+    const price  = +document.getElementById('edit-shuttle-price').value  || 0;
+    const perBox = +document.getElementById('edit-shuttle-perbox').value || 12;
+    if (!boxes || !price) { toast('Fill all fields', 'err'); return; }
+    log = { date, boxes, shuttlesAdded: boxes*perBox, pricePerBox: price, totalPaid: boxes*price, mode };
+  } else {
+    const qty   = +document.getElementById('edit-shuttle-loose-qty').value  || 0;
+    const total = +document.getElementById('edit-shuttle-loose-paid').value || 0;
+    if (!qty || !total) { toast('Fill all fields', 'err'); return; }
+    log = { date, boxes: 1, shuttlesAdded: qty, pricePerBox: total, totalPaid: total, mode };
+  }
+  shuttleLogs[i] = log;
+  LS.set('bmc_shuttle_logs', shuttleLogs);
+  closeModal('modal-edit-shuttle');
+  renderSummary();
+  renderStockCards();
+  toast('Shuttle log updated ✓', 'ok');
+}
+
+function deleteShuttleLog() {
+  const i = +document.getElementById('edit-shuttle-idx').value;
+  if (!confirm('Delete this shuttle purchase?')) return;
+  shuttleLogs.splice(i, 1);
+  LS.set('bmc_shuttle_logs', shuttleLogs);
+  closeModal('modal-edit-shuttle');
+  renderSummary();
+  renderStockCards();
+  toast('Deleted', 'ok');
 }
 
 // ── Modals ───────────────────────────────────────────────────
