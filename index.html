@@ -1874,7 +1874,7 @@ function openCfgModal(id) {
   if (id === 'modal-cfg-sheets') {
     document.getElementById('cfg-api-url').value = API_URL || '';
   }
-  openModal(id);
+  document.getElementById(id).classList.add('open');
 }
 
 // ── Budget ────────────────────────────────────────────────────
@@ -2181,9 +2181,14 @@ function clearLocal() {
     .forEach(k=>LS.del(k));
   config={}; venues=[]; roster=[]; sessions=[]; courtLogs=[]; shuttleLogs=[]; budgetLogs=[];
   selectedVenue=null;
+  API_URL='';
+  localStorage.removeItem('bmc_api');
   toast('Cleared','ok');
   renderHome();
   renderVenuePicker();
+  renderConfig();
+  if (currentTab==='summary')  renderSummary();
+  if (currentTab==='sessions') renderSessions();
 }
 
 // ── Init ──────────────────────────────────────────────────────
