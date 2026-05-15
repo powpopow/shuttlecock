@@ -674,7 +674,10 @@ body {
     <div class="paste-area">
       <textarea id="line-input" placeholder="Paste your LINE session message here…" oninput="parseLine()"></textarea>
       <div class="paste-result" id="parse-result">
-        <div class="parse-row"><span class="parse-lbl">Date</span><span class="parse-val" id="pr-date">—</span></div>
+        <div class="parse-row">
+          <span class="parse-lbl">Date</span>
+          <input type="date" id="pr-date-inp" style="background:transparent;border:none;border-bottom:1.5px solid var(--border2);border-radius:0;padding:2px 4px;font-size:13px;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;text-align:right;width:160px;" onchange="parsedLine.date=this.value">
+        </div>
         <div class="parse-row"><span class="parse-lbl">Venue</span><span class="parse-val accent" id="pr-venue">—</span></div>
         <div class="parse-row"><span class="parse-lbl">Time</span><span class="parse-val" id="pr-time">—</span></div>
         <div class="parse-row"><span class="parse-lbl">Players found</span><span class="parse-val" id="pr-players">—</span></div>
@@ -1252,10 +1255,10 @@ function parseLine() {
   renderCalcPlayers();
 
   document.getElementById('line-input').style.display = 'none';
-  document.getElementById('pr-date').textContent    = date ? new Date(date+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
-  document.getElementById('pr-venue').textContent   = venue ? '@' + venue : '—';
-  document.getElementById('pr-time').textContent    = timeStr ? `${timeStr} · ${hours}hrs` : '—';
-  document.getElementById('pr-players').textContent = players.length + ' found';
+  document.getElementById('pr-date-inp').value        = date; // editable date field
+  document.getElementById('pr-venue').textContent     = venue ? '@' + venue : '—';
+  document.getElementById('pr-time').textContent      = timeStr ? `${timeStr} · ${hours}hrs` : '—';
+  document.getElementById('pr-players').textContent   = players.length + ' found';
   document.getElementById('parse-result').classList.add('show');
 }
 
@@ -1348,9 +1351,12 @@ function calculate() {
   const defaultMarkup    = +config.default_markup || 10;
   const defaultFinalPP   = Math.ceil(basePerPerson) + defaultMarkup;
 
+  const dateInp    = document.getElementById('pr-date-inp');
+  const sessionDate = (dateInp && dateInp.value) ? dateInp.value : new Date().toISOString().slice(0,10);
+
   lastResult = {
     id: Date.now(),
-    date: parsedLine.date || new Date().toISOString().slice(0,10),
+    date: sessionDate,
     venue, hours, courts, courtRate,
     shuttles: shuttles + extraShuttles,
     shuttleCharge,           // price charged to players
